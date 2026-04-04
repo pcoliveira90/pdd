@@ -1,0 +1,21 @@
+{
+  "name": "pdd-framework",
+  "version": "0.1.0",
+  "description": "Patch-Driven Development CLI",
+  "bin": {
+    "pdd": "bin/pdd.js"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "node bin/pdd.js",
+    "init": "node bin/pdd.js init"
+  },
+  "keywords": [
+    "pdd",
+    "patch-driven-development",
+    "bugfix",
+    "legacy",
+    "cli"
+  ],
+  "license": "MIT"
+}
