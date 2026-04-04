@@ -1,5 +1,5 @@
 {
-  "name": "pdd-framework",
+  "name": "@pcoliveira90/pdd"
   "version": "0.1.0",
   "description": "Patch-Driven Development CLI",
   "bin": {
