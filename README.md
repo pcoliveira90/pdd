@@ -1,57 +1,40 @@
 # PDD — Patch-Driven Development
 
-> Ship safe changes in living systems.
+> Ship safe, structured changes in living systems.
 
-PDD is an open-source framework focused on **bugfixes and incremental feature development in existing systems**.
-
----
-
-## 🚨 The Problem
-
-Most development is not greenfield.
-
-It is:
-- fixing bugs in production
-- evolving legacy systems
-- adding features without breaking things
+PDD is a framework focused on **applying safe changes in existing systems**.
 
 ---
 
-## ✅ The Solution: PDD
+## Core Idea
 
-PDD focuses on:
-- understanding existing systems
-- identifying root causes
-- applying minimal safe changes
-- validating with evidence
+Instead of writing code blindly, PDD enforces:
 
----
-
-## 🧠 Core Flow
-
-Issue → Recon → Delta Spec → Patch Plan → Change → Verify
+- understand first
+- change minimally
+- validate always
 
 ---
 
-## ⚙️ Principles
+## CLI
 
-- Change-first
-- Evidence before edit
-- Minimal safe delta
-- Root-cause over symptom patch
-- Regression-aware
-- Reuse existing patterns
-- Verifiable outcomes
+```bash
+pdd init
+pdd fix "bug description"
+pdd fix "bug" --open-pr
+```
 
 ---
 
-## 📦 Structure
+## Workflow
 
-.pdd/
-examples/
+1. describe issue
+2. generate patch artifacts
+3. validate
+4. optionally open PR
 
 ---
 
-## 🚀 Vision
+## Vision
 
-Make AI-assisted development safe for real-world systems.
+A reliable execution engine for safe software changes.
