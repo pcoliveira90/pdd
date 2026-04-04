@@ -1,5 +1,8 @@
 # PDD — Patch-Driven Development
-
+![npm](https://img.shields.io/npm/v/@pcoliveira90/pdd)
+![license](https://img.shields.io/github/license/pcoliveira90/pdd)
+![stars](https://img.shields.io/github/stars/pcoliveira90/pdd)
+![issues](https://img.shields.io/github/issues/pcoliveira90/pdd)
 > Ship safe changes in living systems.
 
 PDD is an open-source framework focused on **bugfixes and incremental feature development in existing systems**.
