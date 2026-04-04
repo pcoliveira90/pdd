@@ -7,9 +7,9 @@
   },
   "type": "module",
   "scripts": {
-    "start": "node bin/pdd.js",
-    "init": "node bin/pdd.js init"
-  },
+     "start": "node bin/pdd-pro.js",
+     "init": "node bin/pdd-pro.js init"
+  } ,
   "keywords": [
     "pdd",
     "patch-driven-development",
