@@ -1,18 +1,15 @@
 {
   "name": "@pcoliveira90/pdd",
-  "version": "0.2.0",
+  "version": "0.2.1-beta.0",
   "description": "Patch-Driven Development CLI — safe, resilient and guided code changes",
   "type": "module",
-
   "bin": {
     "pdd": "bin/pdd-pro.js"
   },
-
   "files": [
     "bin",
     "src"
   ],
-
   "scripts": {
     "start": "node bin/pdd-pro.js",
     "dev": "node bin/pdd-pro.js",
@@ -20,11 +17,9 @@
     "lint": "echo \"No lint configured\"",
     "prepublishOnly": "npm pack"
   },
-
   "engines": {
     "node": ">=18"
   },
-
   "keywords": [
     "cli",
     "developer-tools",
@@ -34,18 +29,14 @@
     "engineering",
     "pdd"
   ],
-
   "repository": {
     "type": "git",
     "url": "https://github.com/pcoliveira90/pdd.git"
   },
-
   "bugs": {
     "url": "https://github.com/pcoliveira90/pdd/issues"
   },
-
   "homepage": "https://github.com/pcoliveira90/pdd#readme",
-
   "author": "Paula Oliveira",
   "license": "MIT"
 }
