@@ -22,13 +22,10 @@ Versoes por idioma: [README padrao](README.md) | [English](README.en.md)
 ## Inicio rapido
 
 ```bash
-# 1) Crie uma worktree vinculada (recomendado e exigido para fluxos mutaveis)
-git worktree add ../pdd-worktrees/minha-mudanca -b feature/minha-mudanca
-
-# 2) Inicialize o PDD no repositorio
+# 1) Inicialize o PDD no repositorio (se estiver na principal, o PDD cria worktree vinculada automaticamente)
 pdd init --here
 
-# 3) Rode um fluxo de correcao
+# 2) Rode um fluxo de correcao
 pdd fix "login nao salva incomeStatus"
 ```
 

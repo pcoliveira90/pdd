@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { spawnSync } from 'child_process';
 import { runValidation } from '../core/validator.js';
 import { openPullRequest } from '../core/pr-manager.js';
 import { generatePatchArtifacts } from '../core/patch-generator.js';
@@ -8,7 +9,7 @@ import { runInit } from './init-command.js';
 import { runDoctor } from './doctor-command.js';
 import { runStatus } from './status-command.js';
 import { runResilientFixWorkflow } from '../core/fix-runner.js';
-import { enforceLinkedWorktree } from '../core/worktree-guard.js';
+import { createLinkedWorktree, detectWorktreeContext } from '../core/worktree-guard.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -33,6 +34,44 @@ function parseFixArgs(argv) {
   };
 }
 
+function maybeAutoRelocateToWorktree({
+  cwd,
+  argv,
+  commandName,
+  enabled
+}) {
+  if (!enabled || argv.includes('--allow-main-worktree')) {
+    return false;
+  }
+
+  const context = detectWorktreeContext(cwd);
+  if (!context.isGitRepo || !context.isPrimaryWorktree) {
+    return false;
+  }
+
+  const { worktreePath, branchName } = createLinkedWorktree({
+    baseDir: cwd,
+    commandName
+  });
+
+  console.log(`🔀 Primary worktree detected. Auto-created linked worktree: ${worktreePath}`);
+  console.log(`🪴 Branch: ${branchName}`);
+  console.log('▶️ Continuing command in the new worktree...');
+
+  const result = spawnSync(
+    process.execPath,
+    [process.argv[1], ...argv],
+    { cwd: worktreePath, stdio: 'inherit' }
+  );
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  process.exitCode = typeof result.status === 'number' ? result.status : 1;
+  return true;
+}
+
 export async function runCli(argv = process.argv.slice(2)) {
   const command = argv[0];
   const cwd = process.cwd();
@@ -43,27 +82,27 @@ export async function runCli(argv = process.argv.slice(2)) {
   }
 
   if (command === 'init') {
-    const allowMainWorktree = argv.includes('--allow-main-worktree');
     const mutatesCurrentRepo = argv.includes('--here') || argv.includes('--upgrade');
-    if (mutatesCurrentRepo) {
-      enforceLinkedWorktree({
-        baseDir: cwd,
-        commandName: 'init',
-        allowMainWorktree
-      });
+    if (maybeAutoRelocateToWorktree({
+      cwd,
+      argv,
+      commandName: 'init',
+      enabled: mutatesCurrentRepo
+    })) {
+      return;
     }
     await runInit(argv);
     return;
   }
 
   if (command === 'doctor') {
-    const allowMainWorktree = argv.includes('--allow-main-worktree');
-    if (argv.includes('--fix')) {
-      enforceLinkedWorktree({
-        baseDir: cwd,
-        commandName: 'doctor --fix',
-        allowMainWorktree
-      });
+    if (maybeAutoRelocateToWorktree({
+      cwd,
+      argv,
+      commandName: 'doctor-fix',
+      enabled: argv.includes('--fix')
+    })) {
+      return;
     }
     runDoctor(cwd, argv);
     return;
@@ -75,7 +114,7 @@ export async function runCli(argv = process.argv.slice(2)) {
   }
 
   if (command === 'fix') {
-    const { issue, openPr, dryRun, noValidate, allowMainWorktree } = parseFixArgs(argv);
+    const { issue, openPr, dryRun, noValidate } = parseFixArgs(argv);
 
     if (!issue) {
       console.error('❌ Missing issue description.');
@@ -83,11 +122,14 @@ export async function runCli(argv = process.argv.slice(2)) {
       process.exit(1);
     }
 
-    enforceLinkedWorktree({
-      baseDir: cwd,
+    if (maybeAutoRelocateToWorktree({
+      cwd,
+      argv,
       commandName: 'fix',
-      allowMainWorktree
-    });
+      enabled: true
+    })) {
+      return;
+    }
 
     console.log('🔧 PDD Fix Workflow');
     console.log(`Issue: ${issue}`);
@@ -143,8 +185,8 @@ export async function runCli(argv = process.argv.slice(2)) {
     console.log('  pdd version   (or: pdd --version, pdd -v)                        Show CLI version');
     console.log('');
     console.log('Worktree policy:');
-    console.log('  Mutating commands require linked git worktree by default.');
-    console.log('  Override intentionally with --allow-main-worktree.');
+    console.log('  Mutating commands auto-create and use a linked git worktree when needed.');
+    console.log('  Use --allow-main-worktree only if you intentionally want to run in primary.');
     console.log('');
     console.log('AI command (official binary):');
     console.log('  pdd-ai [--provider=openai|claude|openrouter] [--task=analysis|build|test|review] [--model=<id>] "issue"');
