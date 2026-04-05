@@ -8,6 +8,7 @@ import { runInit } from './init-command.js';
 import { runDoctor } from './doctor-command.js';
 import { runStatus } from './status-command.js';
 import { runResilientFixWorkflow } from '../core/fix-runner.js';
+import { enforceLinkedWorktree } from '../core/worktree-guard.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -27,7 +28,8 @@ function parseFixArgs(argv) {
     issue,
     openPr: argv.includes('--open-pr'),
     dryRun: argv.includes('--dry-run'),
-    noValidate: argv.includes('--no-validate')
+    noValidate: argv.includes('--no-validate'),
+    allowMainWorktree: argv.includes('--allow-main-worktree')
   };
 }
 
@@ -41,11 +43,28 @@ export async function runCli(argv = process.argv.slice(2)) {
   }
 
   if (command === 'init') {
+    const allowMainWorktree = argv.includes('--allow-main-worktree');
+    const mutatesCurrentRepo = argv.includes('--here') || argv.includes('--upgrade');
+    if (mutatesCurrentRepo) {
+      enforceLinkedWorktree({
+        baseDir: cwd,
+        commandName: 'init',
+        allowMainWorktree
+      });
+    }
     await runInit(argv);
     return;
   }
 
   if (command === 'doctor') {
+    const allowMainWorktree = argv.includes('--allow-main-worktree');
+    if (argv.includes('--fix')) {
+      enforceLinkedWorktree({
+        baseDir: cwd,
+        commandName: 'doctor --fix',
+        allowMainWorktree
+      });
+    }
     runDoctor(cwd, argv);
     return;
   }
@@ -56,13 +75,19 @@ export async function runCli(argv = process.argv.slice(2)) {
   }
 
   if (command === 'fix') {
-    const { issue, openPr, dryRun, noValidate } = parseFixArgs(argv);
+    const { issue, openPr, dryRun, noValidate, allowMainWorktree } = parseFixArgs(argv);
 
     if (!issue) {
       console.error('❌ Missing issue description.');
-      console.log('Use: pdd fix "description" [--open-pr] [--dry-run] [--no-validate]');
+      console.log('Use: pdd fix "description" [--open-pr] [--dry-run] [--no-validate] [--allow-main-worktree]');
       process.exit(1);
     }
+
+    enforceLinkedWorktree({
+      baseDir: cwd,
+      commandName: 'fix',
+      allowMainWorktree
+    });
 
     console.log('🔧 PDD Fix Workflow');
     console.log(`Issue: ${issue}`);
@@ -116,6 +141,10 @@ export async function runCli(argv = process.argv.slice(2)) {
     console.log('  pdd status                                                        Show current change workflow state');
     console.log('  pdd fix "description" [--open-pr] [--dry-run] [--no-validate]    Run fix workflow and generate artifacts');
     console.log('  pdd version   (or: pdd --version, pdd -v)                        Show CLI version');
+    console.log('');
+    console.log('Worktree policy:');
+    console.log('  Mutating commands require linked git worktree by default.');
+    console.log('  Override intentionally with --allow-main-worktree.');
     console.log('');
     console.log('AI command (official binary):');
     console.log('  pdd-ai [--provider=openai|claude|openrouter] [--task=analysis|build|test|review] [--model=<id>] "issue"');

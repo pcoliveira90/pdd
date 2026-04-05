@@ -1,4 +1,4 @@
-export const PDD_TEMPLATE_VERSION = '0.2.1';
+export const PDD_TEMPLATE_VERSION = '0.2.2';
 
 export const CORE_TEMPLATES = {
   '.pdd/constitution.md': `# PDD Constitution
@@ -23,6 +23,9 @@ Prefer existing patterns over new ones.
 
 ## 7. Verifiable Outcome
 Every change must be validated.
+
+## 8. Worktree First
+Always execute code changes from a linked git worktree, not from the primary worktree.
 `,
   '.pdd/templates/delta-spec.md': `# Delta Spec
 
@@ -168,7 +171,7 @@ Map the structure of the system.
 ## Hotspots
 - 
 `,
-  '.pdd/version.json': JSON.stringify({ templateVersion: '0.2.1' }, null, 2) + '\n'
+  '.pdd/version.json': JSON.stringify({ templateVersion: '0.2.2' }, null, 2) + '\n'
 };
 
 export const IDE_ADAPTERS = {
@@ -196,6 +199,7 @@ This repo uses **PDD**: safe changes in existing systems. The agent should:
 - Prefer **minimal safe deltas**; avoid drive-by refactors.
 - Use templates under \`.pdd/templates/\` when producing specs or reports (\`delta-spec\`, \`patch-plan\`, \`verification-report\`).
 - Follow playbooks under \`.pdd/commands/\` when the user invokes a PDD slash command.
+- Use linked git worktrees for all mutating work. Avoid editing from the primary worktree.
 
 Slash commands live in \`.cursor/commands/\` (type \`/\` in Chat/Agent). They are the primary operational guidance for Cursor.
 `,

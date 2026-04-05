@@ -6,6 +6,16 @@
 npx @pcoliveira90/pdd init
 ```
 
+## Worktree-first policy
+
+Before running mutating PDD workflows, create and use a linked git worktree:
+
+```bash
+git worktree add ../pdd-worktrees/my-change -b feature/my-change
+```
+
+PDD enforces this policy by default for mutating commands.
+
 ## What it creates
 
 ```
