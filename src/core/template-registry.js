@@ -1,4 +1,4 @@
-export const PDD_TEMPLATE_VERSION = '0.2.0';
+export const PDD_TEMPLATE_VERSION = '0.2.3';
 
 export const CORE_TEMPLATES = {
   '.pdd/constitution.md': `# PDD Constitution
@@ -23,6 +23,9 @@ Prefer existing patterns over new ones.
 
 ## 7. Verifiable Outcome
 Every change must be validated.
+
+## 8. Worktree First
+Always execute code changes from a linked git worktree, not from the primary worktree.
 `,
   '.pdd/templates/delta-spec.md': `# Delta Spec
 
@@ -90,6 +93,9 @@ approved | needs-review | partial
 ## Purpose
 Understand the current system before making changes.
 
+## Scope
+Summary only. For operational guidance in Cursor, use \`.cursor/commands/pdd-recon.md\`.
+
 ## Output
 - flow mapping
 - impacted files
@@ -100,6 +106,9 @@ Understand the current system before making changes.
 
 ## Purpose
 Fix bugs with minimal safe delta.
+
+## Scope
+Summary only. For operational guidance in Cursor, use \`.cursor/commands/pdd-fix.md\`.
 
 ## Steps
 1. reproduce issue
@@ -112,6 +121,9 @@ Fix bugs with minimal safe delta.
 ## Purpose
 Add features safely in existing systems.
 
+## Scope
+Summary only. For operational guidance in Cursor, use \`.cursor/commands/pdd-feature.md\`.
+
 ## Steps
 1. understand current behavior
 2. define minimal extension
@@ -123,10 +135,24 @@ Add features safely in existing systems.
 ## Purpose
 Validate changes and ensure safety.
 
+## Scope
+Summary only. For operational guidance in Cursor, use \`.cursor/commands/pdd-verify.md\`.
+
 ## Checklist
 - tests pass
 - no regression detected
 - expected behavior confirmed
+`,
+  '.pdd/commands/README.md': `# PDD Commands (Summary)
+
+Files in this directory are concise summaries of each workflow command.
+
+When using Cursor, the operational source of truth is:
+- \`.cursor/commands/pdd.md\`
+- \`.cursor/commands/pdd-recon.md\`
+- \`.cursor/commands/pdd-fix.md\`
+- \`.cursor/commands/pdd-feature.md\`
+- \`.cursor/commands/pdd-verify.md\`
 `,
   '.pdd/memory/system-map.md': `# System Map
 
@@ -145,18 +171,73 @@ Map the structure of the system.
 ## Hotspots
 - 
 `,
-  '.pdd/version.json': JSON.stringify({ templateVersion: '0.2.0' }, null, 2) + '\n'
+  '.pdd/version.json': JSON.stringify({ templateVersion: '0.2.3' }, null, 2) + '\n'
 };
 
 export const IDE_ADAPTERS = {
   claude: {
+    '.claude/CLAUDE.md': `# PDD for Claude Code
+
+This repository uses Patch-Driven Development (PDD).
+
+Operational command guidance lives in:
+- .claude/commands/pdd.md
+- .claude/commands/pdd-recon.md
+- .claude/commands/pdd-fix.md
+- .claude/commands/pdd-feature.md
+- .claude/commands/pdd-verify.md
+`,
     '.claude/commands/pdd.md': `# /pdd
 
 ## Goal
 Execute Patch-Driven Development workflow.
 
 ## Usage
-/pdd fix <issue>
+/pdd <issue-or-goal>
+`,
+    '.claude/commands/pdd-recon.md': `# /pdd-recon
+
+## Goal
+Explore the system before editing.
+
+## Deliver
+- concise context map
+- key files
+- risks/unknowns
+`,
+    '.claude/commands/pdd-fix.md': `# /pdd-fix
+
+## Goal
+Fix bug with minimal safe delta.
+
+## Required flow
+1. map current vs expected behavior
+2. identify root cause
+3. present concise editable proposal
+4. ask explicit user approval
+5. implement and validate
+`,
+    '.claude/commands/pdd-feature.md': `# /pdd-feature
+
+## Goal
+Add feature safely in existing system.
+
+## Required flow
+1. map context and business rules
+2. present concise editable proposal
+3. ask explicit user approval
+4. implement and validate
+`,
+    '.claude/commands/pdd-verify.md': `# /pdd-verify
+
+## Goal
+Verify changes and residual risks.
+
+## Checklist
+- tests and coverage
+- regression risks
+- business rule validation
+- usability/security validation
 `
   },
   cursor: {
@@ -173,8 +254,9 @@ This repo uses **PDD**: safe changes in existing systems. The agent should:
 - Prefer **minimal safe deltas**; avoid drive-by refactors.
 - Use templates under \`.pdd/templates/\` when producing specs or reports (\`delta-spec\`, \`patch-plan\`, \`verification-report\`).
 - Follow playbooks under \`.pdd/commands/\` when the user invokes a PDD slash command.
+- Use linked git worktrees for all mutating work. Avoid editing from the primary worktree.
 
-Slash commands live in \`.cursor/commands/\` (type \`/\` in Chat/Agent). They mirror the PDD playbooks.
+Slash commands live in \`.cursor/commands/\` (type \`/\` in Chat/Agent). They are the primary operational guidance for Cursor.
 `,
     '.cursor/commands/pdd.md': `---
 description: "PDD — main workflow (Patch-Driven Development)"
@@ -312,9 +394,53 @@ $ARGUMENTS
 `
   },
   copilot: {
+    '.github/copilot-instructions.md': `# PDD Instructions for GitHub Copilot
+
+Use Patch-Driven Development (PDD) in this repository.
+
+Before edits:
+- map context and business rules
+- map risks and unknowns
+- propose concise plan and ask for user approval
+
+After edits:
+- validate tests/coverage
+- report residual risks
+`,
     '.github/copilot/pdd.prompt.md': `# PDD Copilot Prompt
 
 You are executing a Patch-Driven Development workflow.
+`,
+    '.github/prompts/pdd-recon.prompt.md': `# PDD Recon Prompt
+
+Map the relevant system area before editing:
+- context
+- key files
+- risks
+- unknowns
+`,
+    '.github/prompts/pdd-fix.prompt.md': `# PDD Fix Prompt
+
+Fix with minimal safe delta:
+1. identify root cause
+2. propose concise editable plan
+3. ask for user approval
+4. implement and validate
+`,
+    '.github/prompts/pdd-feature.prompt.md': `# PDD Feature Prompt
+
+Implement feature safely:
+1. map context/business rules
+2. propose concise editable plan
+3. ask for user approval
+4. implement and validate
+`,
+    '.github/prompts/pdd-verify.prompt.md': `# PDD Verify Prompt
+
+Validate:
+- tests and coverage
+- regression and structural risks
+- business rule/usability/security checks
 `
   }
 };

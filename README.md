@@ -12,6 +12,7 @@ pdd fix "bug"
 pdd fix "bug" --dry-run
 pdd fix "bug" --no-validate
 pdd fix "bug" --open-pr
+pdd-ai --provider=openai --task=analysis "bug"
 ```
 
 ## Flow

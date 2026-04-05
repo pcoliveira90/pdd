@@ -8,6 +8,28 @@ function exists(baseDir, relativePath) {
   return fs.existsSync(path.join(baseDir, relativePath));
 }
 
+function cursorAdapterInstalled(baseDir) {
+  return (
+    exists(baseDir, '.cursor/rules/pdd.mdc') ||
+    exists(baseDir, '.cursor/commands/pdd.md') ||
+    exists(baseDir, '.cursor/pdd.prompt.md')
+  );
+}
+
+function claudeAdapterInstalled(baseDir) {
+  return (
+    exists(baseDir, '.claude/commands/pdd.md') ||
+    exists(baseDir, '.claude/CLAUDE.md')
+  );
+}
+
+function copilotAdapterInstalled(baseDir) {
+  return (
+    exists(baseDir, '.github/copilot/pdd.prompt.md') ||
+    exists(baseDir, '.github/copilot-instructions.md')
+  );
+}
+
 function readVersion(baseDir) {
   const file = path.join(baseDir, '.pdd/version.json');
   if (!fs.existsSync(file)) return null;
@@ -38,9 +60,9 @@ export function runDoctor(baseDir = process.cwd(), argv = []) {
   };
 
   const adapters = {
-    claude: exists(baseDir, '.claude/commands/pdd.md'),
-    cursor: exists(baseDir, '.cursor/pdd.prompt.md'),
-    copilot: exists(baseDir, '.github/copilot/pdd.prompt.md')
+    claude: claudeAdapterInstalled(baseDir),
+    cursor: cursorAdapterInstalled(baseDir),
+    copilot: copilotAdapterInstalled(baseDir)
   };
 
   const installedVersion = readVersion(baseDir);

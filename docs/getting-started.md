@@ -6,6 +6,16 @@
 npx @pcoliveira90/pdd init
 ```
 
+## Worktree-first policy
+
+Before running mutating PDD workflows, create and use a linked git worktree:
+
+```bash
+git worktree add ../pdd-worktrees/my-change -b feature/my-change
+```
+
+PDD enforces this policy by default for mutating commands.
+
 ## What it creates
 
 ```
@@ -31,6 +41,27 @@ Use `--no-project-review` to skip this step.
 4. Plan patch
 5. Apply change
 6. Verify
+
+## Commands quick reference
+
+- `pdd init` — initialize templates and optional IDE adapters
+- `pdd doctor` — diagnose setup health (`--fix` to auto-repair)
+- `pdd status` — show workflow state
+- `pdd fix` — generate artifacts and run validation flow
+- `pdd version` — show installed CLI version
+- `pdd-ai` — run AI analysis via provider/model selection
+
+## Command scope in Cursor
+
+- `.pdd/commands/` contains concise summaries.
+- `.cursor/commands/` is the operational source of truth for Cursor workflows.
+
+## Multi-IDE alignment
+
+PDD keeps equivalent workflow intents across tools:
+- Cursor: `.cursor/commands/pdd-*.md`
+- Claude Code: `.claude/commands/pdd-*.md`
+- GitHub Copilot: `.github/prompts/pdd-*.prompt.md`
 
 ## Philosophy
 
