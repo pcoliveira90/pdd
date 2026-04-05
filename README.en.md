@@ -22,13 +22,10 @@ Language versions: [Default README](README.md) | [Português (Brasil)](README.pt
 ## Quick Start
 
 ```bash
-# 1) Create a linked worktree (recommended and enforced for mutating flows)
-git worktree add ../pdd-worktrees/my-change -b feature/my-change
-
-# 2) Initialize PDD in the repository
+# 1) Initialize PDD in the repository (if running in primary, PDD auto-creates a linked worktree)
 pdd init --here
 
-# 3) Run a fix workflow
+# 2) Run a fix workflow
 pdd fix "login not saving incomeStatus"
 ```
 

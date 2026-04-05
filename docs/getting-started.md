@@ -8,13 +8,16 @@ npx @pcoliveira90/pdd init
 
 ## Worktree-first policy
 
-Before running mutating PDD workflows, create and use a linked git worktree:
+For mutating workflows, PDD uses linked git worktrees by default.
+If you run from the primary worktree, PDD auto-creates one and continues there.
+
+You can still create one manually:
 
 ```bash
 git worktree add ../pdd-worktrees/my-change -b feature/my-change
 ```
 
-PDD enforces this policy by default for mutating commands.
+Use `--allow-main-worktree` only when you intentionally want to stay in the primary worktree.
 
 ## What it creates
 
