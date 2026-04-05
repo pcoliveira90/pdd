@@ -1,60 +1,75 @@
-# PDD — Patch-Driven Development
-![npm](https://img.shields.io/npm/v/@pcoliveira90/pdd)
-![license](https://img.shields.io/github/license/pcoliveira90/pdd)
-![stars](https://img.shields.io/github/stars/pcoliveira90/pdd)
-![issues](https://img.shields.io/github/issues/pcoliveira90/pdd)
-> Ship safe changes in living systems.
+# PDD - Patch-Driven Development
 
-PDD is an open-source framework focused on **bugfixes and incremental feature development in existing systems**.
+[![npm version](https://img.shields.io/npm/v/@pcoliveira90/pdd)](https://www.npmjs.com/package/@pcoliveira90/pdd)
+[![CLI Self Validation](https://github.com/pcoliveira90/pdd/actions/workflows/cli-self-validation.yml/badge.svg)](https://github.com/pcoliveira90/pdd/actions/workflows/cli-self-validation.yml)
+[![License: MIT](https://img.shields.io/github/license/pcoliveira90/pdd)](https://github.com/pcoliveira90/pdd/blob/main/LICENSE)
+[![Node >=18](https://img.shields.io/badge/node-%3E%3D18-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 
----
+> Safe changes in real systems.
 
-## The Problem
+PDD is a CLI-first framework for bugfix and feature work in existing codebases.  
+It standardizes how teams investigate, plan, validate, and document changes.
 
-Most development is not greenfield.
+Language versions: [Default README](README.md) | [Português (Brasil)](README.pt-BR.md)
 
-It is:
-- fixing bugs in production
-- evolving legacy systems
-- adding features without breaking things
+## Why PDD
 
----
+- Worktree-first execution for safer parallel development
+- Structured change artifacts (`delta-spec`, `patch-plan`, `verification-report`)
+- Consistent workflow for Cursor, Claude Code, and GitHub Copilot
+- Built-in quality gates (`doctor`, validation, baseline CI checks)
 
-## The Solution: PDD
+## Quick Start
 
-PDD focuses on:
-- understanding existing systems
-- identifying root causes
-- applying minimal safe changes
-- validating with evidence
+```bash
+# 1) Create a linked worktree (recommended and enforced for mutating flows)
+git worktree add ../pdd-worktrees/my-change -b feature/my-change
 
----
+# 2) Initialize PDD in the repository
+pdd init --here
 
-## Core Flow
+# 3) Run a fix workflow
+pdd fix "login not saving incomeStatus"
+```
 
-Issue → Recon → Delta Spec → Patch Plan → Change → Verify
+## Core Commands
 
----
+```bash
+pdd init --here
+pdd doctor
+pdd status
+pdd fix "bug description" [--dry-run] [--no-validate] [--open-pr]
+pdd version
+```
 
-## Principles
+AI analysis command:
 
-- Change-first
-- Evidence before edit
-- Minimal safe delta
-- Root-cause over symptom patch
-- Regression-aware
-- Reuse existing patterns
-- Verifiable outcomes
+```bash
+pdd-ai --provider=openai --task=analysis "bug description"
+```
 
----
+## Workflow Summary
 
-## Structure
+1. Understand current behavior and root cause
+2. Generate change artifacts under `changes/<change-id>/`
+3. Validate tests/lint/build
+4. Prepare PR artifacts and review in IDE
 
-.pdd/
-examples/
+## IDE Alignment
 
----
+PDD keeps equivalent intents across tools:
 
-## Vision
+- Cursor: `.cursor/commands/pdd-*.md`
+- Claude Code: `.claude/commands/pdd-*.md`
+- GitHub Copilot: `.github/prompts/pdd-*.prompt.md`
 
-Make AI-assisted development safe for real-world systems.
+## Documentation
+
+- `docs/getting-started.md`
+- `docs/installation-and-setup.md`
+- `docs/fix-workflow.md`
+- `docs/manifesto.md`
+
+## Goal
+
+Reliable execution engine for safe software changes.
