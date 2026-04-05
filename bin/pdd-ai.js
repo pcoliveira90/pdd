@@ -11,6 +11,10 @@ async function main() {
     console.log(`Provider: ${result.provider}`);
     console.log(`Task: ${result.task}`);
     console.log(`Model: ${result.model}`);
+    console.log(`Model selection: ${result.model_selection?.selected_automatically ? 'automatic' : 'user/fallback'}`);
+    if (result.model_selection?.note) {
+      console.log(`Selection note: ${result.model_selection.note}`);
+    }
     console.log(`Issue: ${result.issue}`);
     console.log('\nResult:\n');
 

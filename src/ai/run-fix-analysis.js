@@ -1,5 +1,6 @@
 import { buildBugfixPrompt } from './analyze-change.js';
 import { getAiProviderConfig } from './engine.js';
+import { resolveTaskModel } from './model-router.js';
 
 function extractArgValue(args, name, fallback = null) {
   const prefix = `${name}=`;
@@ -144,8 +145,15 @@ function parseJsonSafely(text) {
 export async function runAiFixAnalysis(argv = process.argv.slice(2)) {
   const provider = extractArgValue(argv, '--provider', 'openai');
   const providerConfig = getAiProviderConfig(provider);
-  const model = extractArgValue(argv, '--model', providerConfig.defaultModel);
+  const explicitModel = extractArgValue(argv, '--model', null);
   const task = extractArgValue(argv, '--task', 'analysis');
+  const modelSelection = resolveTaskModel({
+    provider,
+    task,
+    explicitModel,
+    fallbackModel: providerConfig.defaultModel
+  });
+  const model = modelSelection.model;
   const issue = getIssueFromArgs(argv);
 
   if (!issue) {
@@ -179,8 +187,12 @@ export async function runAiFixAnalysis(argv = process.argv.slice(2)) {
 
   return {
     provider,
-    task,
+    task: modelSelection.task,
     model,
+    model_selection: {
+      selected_automatically: modelSelection.selectedAutomatically,
+      note: modelSelection.note
+    },
     issue,
     result: parsed
   };

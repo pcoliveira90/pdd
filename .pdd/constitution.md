@@ -20,3 +20,12 @@ Prefer existing patterns over new ones.
 
 ## 7. Verifiable Outcome
 Every change must be validated.
+
+## 8. Business Rule Integrity
+Never break core business rules while fixing or extending behavior.
+
+## 9. Usability First
+Every change must preserve or improve user experience and task flow.
+
+## 10. Security by Default
+Every change must evaluate security impact before implementation.

@@ -13,12 +13,18 @@ pdd fix "login not saving incomeStatus"
 pdd fix "login not saving incomeStatus" --open-pr
 pdd fix "login not saving incomeStatus" --dry-run
 pdd fix "login not saving incomeStatus" --no-validate
+pdd fix "change user table and API contract" --ack-structural-risk
+pdd fix "checkout flow regressions" --min-coverage=85 --require-coverage
 ```
 
 ## Principles
 
 - patch first
 - validation by default
+- test coverage gate with configurable threshold
+- structural-impact risk validation (database/contracts/migrations)
+- automatic gap check after task mapping
+- concise proposal + user editable approval step
 - PR is optional and explicit
 - keep changes small and reviewable
 

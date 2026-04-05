@@ -35,7 +35,16 @@ A hidden defect left in place creates future instability.
 ### 6. Verification is part of the implementation
 A change is not done when the code compiles. It is done when the outcome is verified.
 
-### 7. AI should increase confidence, not chaos
+### 7. Business rules are non-negotiable
+A valid technical patch can still be wrong if it violates business logic.
+
+### 8. Usability is a quality gate
+If users cannot complete their task safely and clearly, the change is incomplete.
+
+### 9. Security is always in scope
+Every change must evaluate permissions, data exposure, and abuse paths.
+
+### 10. AI should increase confidence, not chaos
 PDD is designed for AI-assisted development that is structured, reviewable, and grounded.
 
 ## What PDD Is
