@@ -1,6 +1,6 @@
 {
   "name": "@pcoliveira90/pdd",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Patch-Driven Development CLI — safe, resilient and guided code changes",
   "type": "module",
   "bin": {
