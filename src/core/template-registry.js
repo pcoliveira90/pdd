@@ -1,4 +1,4 @@
-export const PDD_TEMPLATE_VERSION = '0.2.2';
+export const PDD_TEMPLATE_VERSION = '0.2.3';
 
 export const CORE_TEMPLATES = {
   '.pdd/constitution.md': `# PDD Constitution
@@ -171,18 +171,73 @@ Map the structure of the system.
 ## Hotspots
 - 
 `,
-  '.pdd/version.json': JSON.stringify({ templateVersion: '0.2.2' }, null, 2) + '\n'
+  '.pdd/version.json': JSON.stringify({ templateVersion: '0.2.3' }, null, 2) + '\n'
 };
 
 export const IDE_ADAPTERS = {
   claude: {
+    '.claude/CLAUDE.md': `# PDD for Claude Code
+
+This repository uses Patch-Driven Development (PDD).
+
+Operational command guidance lives in:
+- .claude/commands/pdd.md
+- .claude/commands/pdd-recon.md
+- .claude/commands/pdd-fix.md
+- .claude/commands/pdd-feature.md
+- .claude/commands/pdd-verify.md
+`,
     '.claude/commands/pdd.md': `# /pdd
 
 ## Goal
 Execute Patch-Driven Development workflow.
 
 ## Usage
-/pdd fix <issue>
+/pdd <issue-or-goal>
+`,
+    '.claude/commands/pdd-recon.md': `# /pdd-recon
+
+## Goal
+Explore the system before editing.
+
+## Deliver
+- concise context map
+- key files
+- risks/unknowns
+`,
+    '.claude/commands/pdd-fix.md': `# /pdd-fix
+
+## Goal
+Fix bug with minimal safe delta.
+
+## Required flow
+1. map current vs expected behavior
+2. identify root cause
+3. present concise editable proposal
+4. ask explicit user approval
+5. implement and validate
+`,
+    '.claude/commands/pdd-feature.md': `# /pdd-feature
+
+## Goal
+Add feature safely in existing system.
+
+## Required flow
+1. map context and business rules
+2. present concise editable proposal
+3. ask explicit user approval
+4. implement and validate
+`,
+    '.claude/commands/pdd-verify.md': `# /pdd-verify
+
+## Goal
+Verify changes and residual risks.
+
+## Checklist
+- tests and coverage
+- regression risks
+- business rule validation
+- usability/security validation
 `
   },
   cursor: {
@@ -339,9 +394,53 @@ $ARGUMENTS
 `
   },
   copilot: {
+    '.github/copilot-instructions.md': `# PDD Instructions for GitHub Copilot
+
+Use Patch-Driven Development (PDD) in this repository.
+
+Before edits:
+- map context and business rules
+- map risks and unknowns
+- propose concise plan and ask for user approval
+
+After edits:
+- validate tests/coverage
+- report residual risks
+`,
     '.github/copilot/pdd.prompt.md': `# PDD Copilot Prompt
 
 You are executing a Patch-Driven Development workflow.
+`,
+    '.github/prompts/pdd-recon.prompt.md': `# PDD Recon Prompt
+
+Map the relevant system area before editing:
+- context
+- key files
+- risks
+- unknowns
+`,
+    '.github/prompts/pdd-fix.prompt.md': `# PDD Fix Prompt
+
+Fix with minimal safe delta:
+1. identify root cause
+2. propose concise editable plan
+3. ask for user approval
+4. implement and validate
+`,
+    '.github/prompts/pdd-feature.prompt.md': `# PDD Feature Prompt
+
+Implement feature safely:
+1. map context/business rules
+2. propose concise editable plan
+3. ask for user approval
+4. implement and validate
+`,
+    '.github/prompts/pdd-verify.prompt.md': `# PDD Verify Prompt
+
+Validate:
+- tests and coverage
+- regression and structural risks
+- business rule/usability/security checks
 `
   }
 };

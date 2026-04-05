@@ -56,6 +56,13 @@ Use `--no-project-review` to skip this step.
 - `.pdd/commands/` contains concise summaries.
 - `.cursor/commands/` is the operational source of truth for Cursor workflows.
 
+## Multi-IDE alignment
+
+PDD keeps equivalent workflow intents across tools:
+- Cursor: `.cursor/commands/pdd-*.md`
+- Claude Code: `.claude/commands/pdd-*.md`
+- GitHub Copilot: `.github/prompts/pdd-*.prompt.md`
+
 ## Philosophy
 
 PDD is about:

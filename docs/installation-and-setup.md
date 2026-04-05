@@ -82,6 +82,11 @@ pdd init --here --ide=claude,cursor,copilot
 
 Optional adapters may also be created for the selected IDEs.
 
+Examples of generated adapter files:
+- Cursor: `.cursor/rules/pdd.mdc` and `.cursor/commands/*.md`
+- Claude Code: `.claude/CLAUDE.md` and `.claude/commands/*.md`
+- GitHub Copilot: `.github/copilot-instructions.md` and `.github/prompts/*.prompt.md`
+
 ---
 
 ## 5. Core Commands
@@ -134,3 +139,4 @@ pdd fix "login not saving incomeStatus" --open-pr
 - PDD is the protocol and execution framework
 - Claude Code, Cursor, and Copilot act as execution environments
 - The workflow is designed to keep the same mental model across IDEs
+- `.cursor/commands`, `.claude/commands`, and `.github/prompts` are aligned by intent (recon/fix/feature/verify)
