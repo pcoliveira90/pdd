@@ -8,8 +8,13 @@ npx @pcoliveira90/pdd init
 
 ## Worktree-first policy
 
-For mutating workflows, PDD uses linked git worktrees by default.
-If you run from the primary worktree, PDD auto-creates one and continues there.
+For task execution workflows, PDD uses linked git worktrees by default.
+Today, the automatic relocation scope is `pdd fix`.
+If you run `pdd fix` from the primary worktree, PDD auto-creates one and continues there.
+
+Important in Cursor:
+- `/pdd-fix` is a Cursor slash command prompt, not the CLI execution command.
+- Auto-worktree is triggered by the CLI command `pdd fix`.
 
 You can still create one manually:
 
@@ -85,3 +90,8 @@ PDD is about:
 - read manifesto
 - explore templates
 - try fixing a real bug
+
+## Documentation
+
+- [Installation and Setup](./installation-and-setup.md)
+- [Fix Workflow](./fix-workflow.md)

@@ -103,6 +103,10 @@ Run fix workflow:
 pdd fix "login not saving incomeStatus"
 ```
 
+Note:
+- `/pdd-fix` in Cursor is a prompt command.
+- Automatic linked-worktree creation is done by the CLI command `pdd fix`.
+
 Dry run:
 
 ```bash
@@ -140,3 +144,10 @@ pdd fix "login not saving incomeStatus" --open-pr
 - Claude Code, Cursor, and Copilot act as execution environments
 - The workflow is designed to keep the same mental model across IDEs
 - `.cursor/commands`, `.claude/commands`, and `.github/prompts` are aligned by intent (recon/fix/feature/verify)
+
+---
+
+## Documentation
+
+- [Getting Started](./getting-started.md)
+- [Fix Workflow](./fix-workflow.md)

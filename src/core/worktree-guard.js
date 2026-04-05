@@ -52,6 +52,8 @@ export function createLinkedWorktree({
   }
 
   const topLevel = context.topLevel;
+  const currentBranch = runGit(['rev-parse', '--abbrev-ref', 'HEAD'], baseDir);
+  const startPoint = currentBranch && currentBranch !== 'HEAD' ? currentBranch : 'HEAD';
   const repoName = slug(path.basename(topLevel), 24);
   const commandSlug = slug(commandName, 24);
   const stamp = Date.now();
@@ -63,13 +65,14 @@ export function createLinkedWorktree({
 
   execFileSync(
     'git',
-    ['worktree', 'add', '-b', branchName, worktreePath, 'HEAD'],
+    ['worktree', 'add', '-b', branchName, worktreePath, startPoint],
     { cwd: topLevel, stdio: 'pipe' }
   );
 
   return {
     worktreePath,
-    branchName
+    branchName,
+    baseBranch: startPoint
   };
 }
 
@@ -105,12 +108,13 @@ export function maybeAutoRelocateToWorktree({ cwd, argv, commandName }) {
     return false;
   }
 
-  const { worktreePath, branchName } = createLinkedWorktree({
+  const { worktreePath, branchName, baseBranch } = createLinkedWorktree({
     baseDir: cwd,
     commandName
   });
 
   console.log('🔀 Primary worktree detected. Auto-created linked worktree for task execution.');
+  console.log(`- base branch: ${baseBranch}`);
   console.log(`- branch: ${branchName}`);
   console.log(`- path: ${worktreePath}`);
   console.log('');
