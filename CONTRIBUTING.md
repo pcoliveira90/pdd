@@ -6,7 +6,7 @@ Thanks for your interest in contributing to PDD.
 
 ### GitFlow (branches)
 
-This repo follows **GitFlow**:
+This repo follows **GitFlow** and compliance is **mandatory**:
 
 | Branch | Purpose |
 |--------|---------|
@@ -17,6 +17,8 @@ This repo follows **GitFlow**:
 | `hotfix/<name>` | Urgent production fix (branch from `main`) |
 
 Use **kebab-case** after the prefix. Avoid direct commits to `main`.
+
+Contributions that do not follow GitFlow branch policy should be rejected or asked to rebase into a compliant branch.
 
 ### Typical steps
 
@@ -48,6 +50,7 @@ PDD uses conventional-style commits:
 - describe risk
 - describe validation
 - keep scope small
+- confirm GitFlow compliance (`feature/*`, `release/*`, `hotfix/*`)
 
 ## Ideas to Contribute
 
