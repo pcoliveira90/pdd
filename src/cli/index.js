@@ -1,3 +1,6 @@
+import { readFileSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import { runValidation } from '../core/validator.js';
 import { openPullRequest } from '../core/pr-manager.js';
 import { generatePatchArtifacts } from '../core/patch-generator.js';
@@ -5,6 +8,14 @@ import { runInit } from './init-command.js';
 import { runDoctor } from './doctor-command.js';
 import { runStatus } from './status-command.js';
 import { runResilientFixWorkflow } from '../core/fix-runner.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+function readCliVersion() {
+  const pkgPath = join(__dirname, '../../package.json');
+  const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+  return pkg.version;
+}
 
 function parseFixArgs(argv) {
   const issue = argv
@@ -23,6 +34,11 @@ function parseFixArgs(argv) {
 export async function runCli(argv = process.argv.slice(2)) {
   const command = argv[0];
   const cwd = process.cwd();
+
+  if (command === '--version' || command === '-v' || command === '-V' || command === 'version') {
+    console.log(readCliVersion());
+    return;
+  }
 
   if (command === 'init') {
     await runInit(argv);
@@ -90,7 +106,7 @@ export async function runCli(argv = process.argv.slice(2)) {
   }
 
   if (command === 'help' || !command) {
-    console.log('PDD CLI');
+    console.log(`PDD CLI ${readCliVersion()}`);
     console.log('');
     console.log('Commands:');
     console.log('  pdd init <project-name>');
@@ -98,6 +114,7 @@ export async function runCli(argv = process.argv.slice(2)) {
     console.log('  pdd doctor [--fix]');
     console.log('  pdd status');
     console.log('  pdd fix "description" [--open-pr] [--dry-run] [--no-validate]');
+    console.log('  pdd version   (or: pdd --version, pdd -v)');
     console.log('');
     console.log('Examples:');
     console.log('  pdd doctor --fix');
