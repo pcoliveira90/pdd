@@ -11,86 +11,112 @@ function runGit(args, cwd) {
 }
 
 function normalizePath(input) {
-  return path.resolve(input).replace(/\\/g, '/').toLowerCase();
+  return path.resolve(String(input || '')).replace(/\\/g, '/').toLowerCase();
 }
 
-function slug(value) {
+function slug(value, max = 40) {
   return String(value || '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
-    .slice(0, 48) || 'task';
+    .slice(0, max) || 'task';
 }
 
-function parsePrimaryWorktree(gitWorktreeOutput) {
-  const lines = gitWorktreeOutput.split(/\r?\n/);
-  const firstWorktreeLine = lines.find(line => line.startsWith('worktree '));
-  if (!firstWorktreeLine) return null;
-  return firstWorktreeLine.replace(/^worktree\s+/, '').trim();
-}
-
-function detectWorktreeContext(cwd) {
+export function detectWorktreeContext(baseDir = process.cwd()) {
   try {
-    const inside = runGit(['rev-parse', '--is-inside-work-tree'], cwd);
-    if (inside !== 'true') {
-      return { inGitRepo: false, shouldRelocate: false };
-    }
+    const topLevel = runGit(['rev-parse', '--show-toplevel'], baseDir);
+    const gitDir = runGit(['rev-parse', '--git-dir'], baseDir);
+    const commonDir = runGit(['rev-parse', '--git-common-dir'], baseDir);
 
-    const currentTopLevel = runGit(['rev-parse', '--show-toplevel'], cwd);
-    const worktreeList = runGit(['worktree', 'list', '--porcelain'], cwd);
-    const primaryWorktree = parsePrimaryWorktree(worktreeList);
-    if (!primaryWorktree) {
-      return { inGitRepo: true, shouldRelocate: false };
-    }
-
-    const isPrimary = normalizePath(currentTopLevel) === normalizePath(primaryWorktree);
     return {
-      inGitRepo: true,
-      shouldRelocate: isPrimary,
-      currentTopLevel,
-      primaryWorktree
+      isGitRepo: true,
+      topLevel,
+      isPrimaryWorktree: normalizePath(gitDir) === normalizePath(commonDir)
     };
   } catch {
-    return { inGitRepo: false, shouldRelocate: false };
+    return {
+      isGitRepo: false,
+      topLevel: null,
+      isPrimaryWorktree: false
+    };
   }
 }
 
-function createLinkedWorktree({ cwd, commandName }) {
-  const repoTopLevel = runGit(['rev-parse', '--show-toplevel'], cwd);
-  const repoName = path.basename(repoTopLevel);
-  const parentDir = path.dirname(repoTopLevel);
-  const poolDir = path.join(parentDir, `${repoName}-worktrees`);
-  fs.mkdirSync(poolDir, { recursive: true });
+export function createLinkedWorktree({
+  baseDir = process.cwd(),
+  commandName = 'change'
+}) {
+  const context = detectWorktreeContext(baseDir);
+  if (!context.isGitRepo) {
+    throw new Error('Current directory is not a git repository.');
+  }
 
-  const stamp = new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 12);
-  const shortName = slug(commandName || 'task');
-  const branch = `feature/pdd-auto-${shortName}-${stamp}`;
-  const worktreeDir = path.join(poolDir, `${shortName}-${stamp}`);
+  const topLevel = context.topLevel;
+  const repoName = slug(path.basename(topLevel), 24);
+  const commandSlug = slug(commandName, 24);
+  const stamp = Date.now();
+  const branchName = `feature/pdd-auto-${commandSlug}-${stamp}`;
 
-  runGit(['worktree', 'add', worktreeDir, '-b', branch], cwd);
+  const worktreesRoot = path.join(path.dirname(topLevel), 'pdd-worktrees');
+  fs.mkdirSync(worktreesRoot, { recursive: true });
+  const worktreePath = path.join(worktreesRoot, `${repoName}-${commandSlug}-${stamp}`);
 
-  return { worktreeDir, branch };
+  execFileSync(
+    'git',
+    ['worktree', 'add', '-b', branchName, worktreePath, 'HEAD'],
+    { cwd: topLevel, stdio: 'pipe' }
+  );
+
+  return {
+    worktreePath,
+    branchName
+  };
+}
+
+export function enforceLinkedWorktree({
+  baseDir = process.cwd(),
+  commandName = 'command',
+  allowMainWorktree = false
+}) {
+  const context = detectWorktreeContext(baseDir);
+  if (!context.isGitRepo) {
+    return context;
+  }
+
+  if (context.isPrimaryWorktree && !allowMainWorktree) {
+    throw new Error(
+      `PDD requires a linked worktree for "${commandName}". Current directory is the primary worktree.\n` +
+      'Create one and run there:\n' +
+      '  git worktree add ../pdd-worktrees/<name> -b feature/<name>\n' +
+      'Or override intentionally with --allow-main-worktree.'
+    );
+  }
+
+  return context;
 }
 
 export function maybeAutoRelocateToWorktree({ cwd, argv, commandName }) {
-  const allowMainWorktree = argv.includes('--allow-main-worktree');
-  if (allowMainWorktree) return false;
-
-  const context = detectWorktreeContext(cwd);
-  if (!context.inGitRepo || !context.shouldRelocate) {
+  if (argv.includes('--allow-main-worktree')) {
     return false;
   }
 
-  const { worktreeDir, branch } = createLinkedWorktree({ cwd, commandName });
+  const context = detectWorktreeContext(cwd);
+  if (!context.isGitRepo || !context.isPrimaryWorktree) {
+    return false;
+  }
 
-  console.log(`🔀 Main worktree detected. Starting task in linked worktree.`);
-  console.log(`- branch: ${branch}`);
-  console.log(`- path: ${worktreeDir}`);
+  const { worktreePath, branchName } = createLinkedWorktree({
+    baseDir: cwd,
+    commandName
+  });
+
+  console.log('🔀 Primary worktree detected. Auto-created linked worktree for task execution.');
+  console.log(`- branch: ${branchName}`);
+  console.log(`- path: ${worktreePath}`);
   console.log('');
 
-  const forwardArgs = [...argv];
-  execFileSync(process.execPath, [process.argv[1], ...forwardArgs], {
-    cwd: worktreeDir,
+  execFileSync(process.execPath, [process.argv[1], ...argv], {
+    cwd: worktreePath,
     stdio: 'inherit'
   });
 

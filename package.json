@@ -1,10 +1,11 @@
 {
   "name": "@pcoliveira90/pdd",
-  "version": "0.2.6",
+  "version": "0.4.0",
   "description": "Patch-Driven Development CLI — safe, resilient and guided code changes",
   "type": "module",
   "bin": {
-    "pdd": "bin/pdd-pro.js"
+    "pdd": "bin/pdd-pro.js",
+    "pdd-ai": "bin/pdd-ai.js"
   },
   "files": [
     "bin",
@@ -13,8 +14,8 @@
   "scripts": {
     "start": "node bin/pdd-pro.js",
     "dev": "node bin/pdd-pro.js",
-    "test": "echo \"No tests yet\"",
-    "lint": "echo \"No lint configured\"",
+    "test": "node --test",
+    "lint": "node ./scripts/lint-js.mjs",
     "prepublishOnly": "npm pack"
   },
   "engines": {

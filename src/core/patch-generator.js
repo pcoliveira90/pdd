@@ -17,7 +17,6 @@ function slugify(value) {
     .replace(/^-+|-+$/g, '')
     .slice(0, 48);
 }
-
 function renderStructuralRiskSection(riskAssessment) {
   if (!riskAssessment?.hasHighRisk) {
     return 'No high structural impact signals detected from issue description.';
@@ -131,26 +130,25 @@ ${renderMappedTasksSection(gapCheck)}
   return [
     path.join('.pdd', 'work-items', 'changes', changeId, 'proposal.md'),
     path.join('.pdd', 'work-items', 'changes', changeId, 'decision.md'),
-    path.join('.pdd', 'work-items', 'plans', changeId, 'plan.md'),
-    path.join('.pdd', 'work-items', 'features', '.gitkeep')
+    path.join('.pdd', 'work-items', 'plans', changeId, 'plan.md')
   ];
 }
 
 export function generatePatchArtifacts({
   issue,
   baseDir = process.cwd(),
+  changeId = null,
   riskAssessment = null,
   gapCheck = null
 }) {
-  const timestamp = Date.now();
-  const changeId = `change-${timestamp}-${slugify(issue || 'update')}`;
-  const changeDir = path.join(baseDir, 'changes', changeId);
+  const resolvedChangeId = changeId || `change-${Date.now()}-${slugify(issue || 'update')}`;
+  const changeDir = path.join(baseDir, 'changes', resolvedChangeId);
 
   const files = [
-    path.join('changes', changeId, 'delta-spec.md'),
-    path.join('changes', changeId, 'patch-plan.md'),
-    path.join('changes', changeId, 'verification-report.md'),
-    path.join('changes', changeId, 'gaps-report.md')
+    path.join('changes', resolvedChangeId, 'delta-spec.md'),
+    path.join('changes', resolvedChangeId, 'patch-plan.md'),
+    path.join('changes', resolvedChangeId, 'verification-report.md'),
+    path.join('changes', resolvedChangeId, 'gaps-report.md')
   ];
 
   writeFile(
@@ -158,7 +156,7 @@ export function generatePatchArtifacts({
     `# Delta Spec
 
 ## Change ID
-${changeId}
+${resolvedChangeId}
 
 ## Issue
 ${issue}
@@ -201,7 +199,7 @@ ${renderGapCheckSection(gapCheck)}
     `# Patch Plan
 
 ## Change ID
-${changeId}
+${resolvedChangeId}
 
 ## Issue
 ${issue}
@@ -237,7 +235,7 @@ ${renderGapCheckSection(gapCheck)}
     `# Verification Report
 
 ## Change ID
-${changeId}
+${resolvedChangeId}
 
 ## Issue
 ${issue}
@@ -267,7 +265,7 @@ pending
     `# Gaps Report
 
 ## Change ID
-${changeId}
+${resolvedChangeId}
 
 ## Issue
 ${issue}
@@ -286,7 +284,7 @@ ${renderGapCheckSection(gapCheck)}
 
   const workItemFiles = writeWorkItemRecords({
     baseDir,
-    changeId,
+    changeId: resolvedChangeId,
     issue,
     gapCheck
   });
@@ -294,7 +292,7 @@ ${renderGapCheckSection(gapCheck)}
   files.push(...workItemFiles);
 
   return {
-    changeId,
+    changeId: resolvedChangeId,
     changeDir,
     files
   };

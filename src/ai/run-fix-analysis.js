@@ -157,7 +157,7 @@ export async function runAiFixAnalysis(argv = process.argv.slice(2)) {
   const issue = getIssueFromArgs(argv);
 
   if (!issue) {
-    throw new Error('Missing issue description. Example: pdd fix --ai "login not saving incomeStatus"');
+    throw new Error('Missing issue description. Example: pdd-ai --provider=openai --task=analysis "login not saving incomeStatus"');
   }
 
   const apiKey = process.env[providerConfig.envKey];
@@ -166,7 +166,11 @@ export async function runAiFixAnalysis(argv = process.argv.slice(2)) {
   }
 
   const baseUrl = resolveBaseUrl(providerConfig);
-  const prompt = buildBugfixPrompt({ issue });
+  const prompt = [
+    `Task mode: ${task}`,
+    '',
+    buildBugfixPrompt({ issue })
+  ].join('\n');
 
   let raw;
   if (provider === 'openai') {

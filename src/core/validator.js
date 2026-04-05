@@ -1,9 +1,9 @@
 import fs from 'fs';
 import { execSync } from 'child_process';
 
-function runCommand(command) {
+function runCommand(command, baseDir) {
   console.log(`→ ${command}`);
-  execSync(command, { stdio: 'inherit' });
+  execSync(command, { stdio: 'inherit', cwd: baseDir });
 }
 
 function resolveCoverageSummaryPath(baseDir) {
@@ -108,7 +108,7 @@ export function runValidation(baseDir = process.cwd(), options = {}) {
   }
 
   try {
-    commands.forEach(runCommand);
+    commands.forEach(command => runCommand(command, baseDir));
     if (coverageGate) {
       validateCoverage({
         baseDir,

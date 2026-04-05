@@ -93,7 +93,7 @@ export async function runCli(argv = process.argv.slice(2)) {
 
     if (!issue) {
       console.error('❌ Missing issue description.');
-      console.log('Use: pdd fix "description" [--open-pr] [--dry-run] [--no-validate] [--ack-structural-risk] [--min-coverage=80] [--require-coverage] [--allow-main-worktree]');
+      console.log('Use: pdd fix "description" [--open-pr] [--dry-run] [--no-validate] [--ack-structural-risk] [--min-coverage=80] [--require-coverage] [--no-coverage-gate] [--allow-main-worktree]');
       process.exit(1);
     }
 
@@ -167,19 +167,29 @@ export async function runCli(argv = process.argv.slice(2)) {
   if (command === 'help' || !command) {
     console.log(`PDD CLI ${readCliVersion()}`);
     console.log('');
-    console.log('Commands:');
-    console.log('  pdd init <project-name>');
-    console.log('  pdd init --here [--force] [--upgrade] [-y] [--no-ide-prompt] [--no-project-review] [--ide=claude|cursor|copilot|...]');
-    console.log('  pdd doctor [--fix]');
-    console.log('  pdd status');
-    console.log('  pdd fix "description" [--open-pr] [--dry-run] [--no-validate] [--ack-structural-risk] [--min-coverage=80] [--require-coverage] [--no-coverage-gate] [--allow-main-worktree]');
-    console.log('  pdd version   (or: pdd --version, pdd -v)');
+    console.log('Core commands:');
+    console.log('  pdd init <project-name>                                          Initialize PDD templates in a new folder');
+    console.log('  pdd init --here [--force] [--upgrade] [-y] [--no-ide-prompt]     Initialize or upgrade templates in current project');
+    console.log('      [--no-project-review] [--ide=claude|cursor|copilot|...]');
+    console.log('  pdd doctor [--fix]                                                Check installation health and optionally auto-repair');
+    console.log('  pdd status                                                        Show current change workflow state');
+    console.log('  pdd fix "description" [--open-pr] [--dry-run] [--no-validate]    Run fix workflow and generate artifacts');
+    console.log('      [--ack-structural-risk] [--min-coverage=80] [--require-coverage] [--no-coverage-gate] [--allow-main-worktree]');
+    console.log('  pdd version   (or: pdd --version, pdd -v)                        Show CLI version');
+    console.log('');
+    console.log('Worktree policy:');
+    console.log('  Task execution auto-creates and uses a linked git worktree when needed.');
+    console.log('  Current scope: pdd fix. Use --allow-main-worktree to run in primary intentionally.');
+    console.log('');
+    console.log('AI command (official binary):');
+    console.log('  pdd-ai [--provider=openai|claude|openrouter] [--task=analysis|build|test|review] [--model=<id>] "issue"');
     console.log('');
     console.log('Examples:');
     console.log('  pdd doctor --fix');
     console.log('  pdd status');
     console.log('  pdd init --here --upgrade');
     console.log('  pdd fix "login not saving incomeStatus" --open-pr');
+    console.log('  pdd-ai --provider=openai --task=analysis "login not saving incomeStatus"');
     console.log('');
     return;
   }

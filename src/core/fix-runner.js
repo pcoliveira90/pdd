@@ -75,11 +75,11 @@ export async function runResilientFixWorkflow({
   }
 
   const changeId = `change-${Date.now()}`;
+  let phase = 'patch-generation';
   setActiveChange(baseDir, changeId, 'in-progress');
 
   try {
-    let phase = 'patch-generation';
-    const patch = generatePatchArtifacts({ issue, baseDir });
+    const patch = generatePatchArtifacts({ issue, baseDir, changeId });
 
     if (!noValidate) {
       phase = 'validation';
@@ -113,7 +113,6 @@ export async function runResilientFixWorkflow({
       files: patch.files
     };
   } catch (error) {
-    const phase = current.status === 'in-progress' ? current.lastPhase || 'unknown' : 'unknown';
     const payload = buildFailurePayload({ issue, changeId, phase, error });
     const artifacts = persistFailureArtifacts(baseDir, payload);
 
