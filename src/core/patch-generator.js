@@ -49,6 +49,34 @@ function renderGapCheckSection(gapCheck) {
   return lines.join('\n');
 }
 
+function renderBestPracticesSection(gapCheck) {
+  const bestPractices = gapCheck?.bestPractices;
+  if (!bestPractices) {
+    return '- status: unavailable';
+  }
+
+  const suggestions = Array.isArray(bestPractices.suggestions)
+    ? bestPractices.suggestions
+    : [];
+
+  if (suggestions.length === 0) {
+    return '- mode: suggestion-only\n- suggestions: none';
+  }
+
+  const lines = [
+    '- mode: suggestion-only',
+    `- total suggestions: ${suggestions.length}`,
+    '- policy: do not apply any suggestion without explicit user approval'
+  ];
+
+  for (const item of suggestions) {
+    lines.push(`- ${item.title} (${item.id})`);
+    lines.push(`  proposal: ${item.proposal}`);
+  }
+
+  return lines.join('\n');
+}
+
 function renderMappedTasksSection(gapCheck) {
   if (!gapCheck || !Array.isArray(gapCheck.mappedTasks) || gapCheck.mappedTasks.length === 0) {
     return '- not available';
@@ -184,6 +212,9 @@ ${renderStructuralRiskSection(riskAssessment)}
 ## Automatic Gap Check
 ${renderGapCheckSection(gapCheck)}
 
+## Best-Practices Suggestions (Approval Required)
+${renderBestPracticesSection(gapCheck)}
+
 ## Minimal Safe Delta
 
 ## Alternatives Considered
@@ -225,6 +256,9 @@ ${renderStructuralRiskSection(riskAssessment)}
 
 ## Automatic Gap Check
 ${renderGapCheckSection(gapCheck)}
+
+## Best-Practices Suggestions (Approval Required)
+${renderBestPracticesSection(gapCheck)}
 
 ## Rollback Strategy
 `
@@ -275,6 +309,9 @@ ${renderMappedTasksSection(gapCheck)}
 
 ## Automatic Gap Check Summary
 ${renderGapCheckSection(gapCheck)}
+
+## Best-Practices Suggestions (Approval Required)
+${renderBestPracticesSection(gapCheck)}
 
 ## Reviewer Decision
 - approved: yes | no

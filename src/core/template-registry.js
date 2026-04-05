@@ -68,6 +68,11 @@ bugfix | feature | refactor-safe | hotfix
 - API/event contract compatibility impact
 - rollout/rollback complexity impact
 
+## Best-Practices Suggestions (Approval Required)
+- suggestion-only mode
+- proposal first
+- explicit user approval required before applying
+
 ## Minimal Safe Delta
 
 ## Alternatives Considered
@@ -102,6 +107,11 @@ bugfix | feature | refactor-safe | hotfix
 - API/event contract compatibility impact
 - rollout/rollback complexity impact
 
+## Best-Practices Suggestions (Approval Required)
+- suggestion-only mode
+- proposal first
+- explicit user approval required before applying
+
 ## Rollback Strategy
 `,
   '.pdd/templates/verification-report.md': `# Verification Report
@@ -135,6 +145,11 @@ approved | needs-review | partial
 ## Task Mapping
 
 ## Automatic Gap Check Summary
+
+## Best-Practices Suggestions (Approval Required)
+- suggestion-only mode
+- proposals:
+- approved to apply: yes | no
 
 ## Gaps by Severity
 - critical:
@@ -384,9 +399,10 @@ $ARGUMENTS
 3. Map context + business rules (only essential points).
 4. Map key risks (regression, structural, usability, security).
 5. Run automatic gap check after task mapping.
-6. Present a concise proposal and ask the user to edit if needed.
-7. Ask explicit approval before any file edits.
-8. After approval, implement and validate.
+6. Run best-practices check in suggestion-only mode.
+7. Present concise proposal (including selected suggestions) and ask the user to edit if needed.
+8. Ask explicit approval before any file edits or suggestions application.
+9. After approval, implement and validate.
 
 ## Output
 
@@ -398,7 +414,8 @@ Use this exact structure:
 5) Concise proposal (editable by user)
 6) Verification plan
 7) Automatic gap check
-8) Pending approval (explicit question)
+8) Best-practices suggestions (proposal-only)
+9) Pending approval (explicit question)
 `,
     '.cursor/commands/pdd-recon.md': `---
 description: "PDD — recon (explore before editing)"
@@ -450,16 +467,17 @@ $ARGUMENTS
 7. Build risk map (regression, data/contract, performance/ops, usability, security).
    - Flag structural-impact actions explicitly (database/schema/migrations/contracts).
 8. Run automatic gap check immediately after task mapping and risk mapping.
-9. Present concise proposal and allow user edits.
-10. Ask explicit approval before editing files.
+9. Run best-practices check in suggestion-only mode.
+10. Present concise proposal and allow user edits.
+11. Ask explicit approval before editing files or applying suggestions.
 
 ### Phase 2 — Plan (no edits)
-11. Propose minimal safe delta and alternatives considered.
-12. Define verification plan (tests + manual checks + rollback).
+12. Propose minimal safe delta and alternatives considered.
+13. Define verification plan (tests + manual checks + rollback).
 
 ### Phase 3 — Execution (after approval)
-13. Implement approved minimal change.
-14. Validate and report residual risks.
+14. Implement approved minimal change.
+15. Validate and report residual risks.
 
 ## Output
 
@@ -472,12 +490,13 @@ Use this exact structure:
 6) Concise proposal (editable by user)
 7) Verification + coverage plan
 8) Automatic gap check
-9) Pending approval (explicit question)
+9) Best-practices suggestions (proposal-only)
+10) Pending approval (explicit question)
 
 After approval:
-10) Files changed
-11) Validation results
-12) Residual risks
+11) Files changed
+12) Validation results
+13) Residual risks
 `,
     '.cursor/commands/pdd-feature.md': `---
 description: "PDD — feature (safe extension)"
@@ -503,16 +522,17 @@ $ARGUMENTS
 6. Build risk map (compatibility, regression, data, performance, operational, usability, security).
    - Flag structural-impact actions explicitly (database/schema/migrations/contracts).
 7. Run automatic gap check immediately after task mapping and risk mapping.
-8. Present concise proposal and allow user edits.
-9. Ask explicit approval before editing files.
+8. Run best-practices check in suggestion-only mode.
+9. Present concise proposal and allow user edits.
+10. Ask explicit approval before editing files or applying suggestions.
 
 ### Phase 2 — Plan (no edits)
-10. Define smallest safe extension and non-goals.
-11. Propose verification and rollback strategy.
+11. Define smallest safe extension and non-goals.
+12. Propose verification and rollback strategy.
 
 ### Phase 3 — Execution (after approval)
-12. Implement approved scope.
-13. Validate compatibility and report residual risks.
+13. Implement approved scope.
+14. Validate compatibility and report residual risks.
 
 ## Output
 
@@ -524,12 +544,13 @@ Use this exact structure:
 5) Concise proposal (editable by user)
 6) Verification + coverage + rollback plan
 7) Automatic gap check
-8) Pending approval (explicit question)
+8) Best-practices suggestions (proposal-only)
+9) Pending approval (explicit question)
 
 After approval:
-9) Files changed
-10) Validation results
-11) Residual risks
+10) Files changed
+11) Validation results
+12) Residual risks
 `,
     '.cursor/commands/pdd-verify.md': `---
 description: "PDD — verify (validation checklist)"
