@@ -51,7 +51,7 @@ jobs:
           fi
 
       - name: Bump version
-        run: npm version ${{ steps.version.outputs.type }} -m "chore(release): %s [skip ci]"
+        run: 'npm version ${{ steps.version.outputs.type }} -m "chore(release): %s [skip ci]"'
 
       - name: Push version commit and tags
         run: git push origin main --follow-tags
