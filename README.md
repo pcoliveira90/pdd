@@ -1,40 +1,26 @@
 # PDD — Patch-Driven Development
 
-> Ship safe, structured changes in living systems.
+> Safe changes in real systems.
 
-PDD is a framework focused on **applying safe changes in existing systems**.
-
----
-
-## Core Idea
-
-Instead of writing code blindly, PDD enforces:
-
-- understand first
-- change minimally
-- validate always
-
----
+PDD is a framework focused on executing safe changes in existing systems.
 
 ## CLI
 
 ```bash
 pdd init
-pdd fix "bug description"
+pdd fix "bug"
+pdd fix "bug" --dry-run
+pdd fix "bug" --no-validate
 pdd fix "bug" --open-pr
 ```
 
----
-
-## Workflow
+## Flow
 
 1. describe issue
-2. generate patch artifacts
+2. generate artifacts
 3. validate
-4. optionally open PR
+4. prepare PR (IDE handles opening)
 
----
+## Goal
 
-## Vision
-
-A reliable execution engine for safe software changes.
+Reliable execution engine for safe software changes.

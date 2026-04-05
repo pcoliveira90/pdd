@@ -1,29 +1,21 @@
-import fs from 'fs';
-import path from 'path';
 import { runValidation } from '../core/validator.js';
 import { openPullRequest } from '../core/pr-manager.js';
 import { generatePatchArtifacts } from '../core/patch-generator.js';
+import { runInit } from './init-command.js';
+import { runDoctor } from './doctor-command.js';
 
-const TEMPLATE_FILES = {
-  '.pdd/constitution.md': `# PDD Constitution`,
-  '.pdd/templates/delta-spec.md': `# Delta Spec`,
-  '.pdd/templates/patch-plan.md': `# Patch Plan`,
-  '.pdd/templates/verification-report.md': `# Verification Report`,
-  '.pdd/memory/system-map.md': `# System Map`
-};
+function parseFixArgs(argv) {
+  const issue = argv
+    .filter(arg => !arg.startsWith('--') && arg !== 'fix')
+    .join(' ')
+    .trim();
 
-function ensureDir(filePath) {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-}
-
-function writeFileSafe(baseDir, relativePath, content, force = false) {
-  const fullPath = path.join(baseDir, relativePath);
-  if (!force && fs.existsSync(fullPath)) {
-    return { path: relativePath, status: 'skipped' };
-  }
-  ensureDir(fullPath);
-  fs.writeFileSync(fullPath, content, 'utf-8');
-  return { path: relativePath, status: 'created' };
+  return {
+    issue,
+    openPr: argv.includes('--open-pr'),
+    dryRun: argv.includes('--dry-run'),
+    noValidate: argv.includes('--no-validate')
+  };
 }
 
 export async function runCli(argv = process.argv.slice(2)) {
@@ -31,26 +23,75 @@ export async function runCli(argv = process.argv.slice(2)) {
   const cwd = process.cwd();
 
   if (command === 'init') {
-    Object.entries(TEMPLATE_FILES).forEach(([file, content]) => writeFileSafe(cwd, file, content));
-    console.log('PDD initialized');
+    runInit(argv);
+    return;
+  }
+
+  if (command === 'doctor') {
+    runDoctor(cwd);
     return;
   }
 
   if (command === 'fix') {
-    const issue = argv.filter(a => !a.startsWith('--') && a !== 'fix').join(' ');
+    const { issue, openPr, dryRun, noValidate } = parseFixArgs(argv);
 
-    const patch = generatePatchArtifacts({ issue });
-
-    console.log('Patch created:', patch.files);
-
-    runValidation();
-
-    if (argv.includes('--open-pr')) {
-      await openPullRequest({ title: `fix: ${issue}`, body: issue });
+    if (!issue) {
+      console.error('❌ Missing issue description.');
+      console.log('Use: pdd fix "description" [--open-pr] [--dry-run] [--no-validate]');
+      process.exit(1);
     }
 
+    console.log('🔧 PDD Fix Workflow');
+    console.log(`Issue: ${issue}`);
+    console.log(`Open PR prep: ${openPr ? 'yes' : 'no'}`);
+    console.log(`Dry run: ${dryRun ? 'yes' : 'no'}`);
+    console.log(`Validation: ${noValidate ? 'skipped' : 'enabled'}`);
+
+    if (dryRun) {
+      console.log('📝 Dry run only. No files created.');
+      return;
+    }
+
+    const patch = generatePatchArtifacts({ issue, baseDir: cwd });
+
+    console.log('🧩 Patch artifacts created:');
+    patch.files.forEach(file => console.log(`- ${file}`));
+
+    if (!noValidate) {
+      runValidation(cwd);
+    }
+
+    if (openPr) {
+      await openPullRequest({
+        issue,
+        changeId: patch.changeId,
+        changeDir: patch.changeDir,
+        baseDir: cwd
+      });
+    }
+
+    console.log('✅ Fix workflow finished.');
     return;
   }
 
-  console.log('Usage: pdd init | pdd fix');
+  if (command === 'help' || !command) {
+    console.log('PDD CLI');
+    console.log('');
+    console.log('Commands:');
+    console.log('  pdd init <project-name>');
+    console.log('  pdd init --here [--force] [--upgrade] [--ide=claude|cursor|copilot|claude,cursor,copilot]');
+    console.log('  pdd doctor');
+    console.log('  pdd fix "description" [--open-pr] [--dry-run] [--no-validate]');
+    console.log('');
+    console.log('Examples:');
+    console.log('  pdd init --here --ide=claude,cursor');
+    console.log('  pdd init --here --upgrade');
+    console.log('  pdd doctor');
+    console.log('  pdd fix "login not saving incomeStatus" --open-pr');
+    console.log('');
+    return;
+  }
+
+  console.log(`❌ Unknown command: ${command}`);
+  console.log('Use: pdd help');
 }

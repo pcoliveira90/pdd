@@ -1,19 +1,21 @@
+import fs from 'fs';
+import path from 'path';
 import { execSync } from 'child_process';
 
 function exec(command) {
-  console.log(`→ ${command}`);
   execSync(command, { stdio: 'inherit' });
 }
 
-export async function openPullRequest({ title }) {
-  console.log('Creating branch and commit...');
+export async function openPullRequest({ issue, changeId, changeDir }) {
+  const branch = `pdd/${changeId}`;
+  const title = `fix: ${issue}`;
 
-  const branch = `pdd/${Date.now()}`;
+  fs.writeFileSync(path.join(changeDir, 'pr-title.txt'), title);
+  fs.writeFileSync(path.join(changeDir, 'pr-body.md'), issue);
 
   exec(`git checkout -b ${branch}`);
   exec('git add .');
   exec(`git commit -m "${title}"`);
-  exec(`git push origin ${branch}`);
 
-  console.log('Branch pushed. Open PR manually or integrate GitHub API next.');
+  console.log('PR ready (use IDE to open)');
 }
