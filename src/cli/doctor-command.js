@@ -8,26 +8,42 @@ function exists(baseDir, relativePath) {
   return fs.existsSync(path.join(baseDir, relativePath));
 }
 
+function existsAny(baseDir, relativePaths) {
+  return relativePaths.some(relativePath => exists(baseDir, relativePath));
+}
+
 function cursorAdapterInstalled(baseDir) {
-  return (
-    exists(baseDir, '.cursor/rules/pdd.mdc') ||
-    exists(baseDir, '.cursor/commands/pdd.md') ||
-    exists(baseDir, '.cursor/pdd.prompt.md')
-  );
+  return existsAny(baseDir, [
+    '.cursor/rules/pdd.mdc',
+    '.cursor/commands/pdd.md',
+    '.cursor/commands/pdd-recon.md',
+    '.cursor/commands/pdd-fix.md',
+    '.cursor/commands/pdd-feature.md',
+    '.cursor/commands/pdd-verify.md',
+    '.cursor/pdd.prompt.md'
+  ]);
 }
 
 function claudeAdapterInstalled(baseDir) {
-  return (
-    exists(baseDir, '.claude/commands/pdd.md') ||
-    exists(baseDir, '.claude/CLAUDE.md')
-  );
+  return existsAny(baseDir, [
+    '.claude/CLAUDE.md',
+    '.claude/commands/pdd.md',
+    '.claude/commands/pdd-recon.md',
+    '.claude/commands/pdd-fix.md',
+    '.claude/commands/pdd-feature.md',
+    '.claude/commands/pdd-verify.md'
+  ]);
 }
 
 function copilotAdapterInstalled(baseDir) {
-  return (
-    exists(baseDir, '.github/copilot/pdd.prompt.md') ||
-    exists(baseDir, '.github/copilot-instructions.md')
-  );
+  return existsAny(baseDir, [
+    '.github/copilot-instructions.md',
+    '.github/copilot/pdd.prompt.md',
+    '.github/prompts/pdd-recon.prompt.md',
+    '.github/prompts/pdd-fix.prompt.md',
+    '.github/prompts/pdd-feature.prompt.md',
+    '.github/prompts/pdd-verify.prompt.md'
+  ]);
 }
 
 function readVersion(baseDir) {
@@ -90,6 +106,7 @@ export function runDoctor(baseDir = process.cwd(), argv = []) {
   } else {
     console.log('🎉 Templates up to date');
   }
+  console.log('ℹ️ Note: CLI package version and template version are tracked separately.');
 
   if (!adapters.claude && !adapters.cursor && !adapters.copilot) {
     console.log('ℹ️ No IDE adapters installed');

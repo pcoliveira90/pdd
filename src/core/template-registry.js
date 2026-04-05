@@ -171,7 +171,7 @@ Map the structure of the system.
 ## Hotspots
 - 
 `,
-  '.pdd/version.json': JSON.stringify({ templateVersion: '0.2.3' }, null, 2) + '\n'
+  '.pdd/version.json': JSON.stringify({ templateVersion: PDD_TEMPLATE_VERSION }, null, 2) + '\n'
 };
 
 export const IDE_ADAPTERS = {
