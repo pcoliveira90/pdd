@@ -3,6 +3,8 @@ import { openPullRequest } from '../core/pr-manager.js';
 import { generatePatchArtifacts } from '../core/patch-generator.js';
 import { runInit } from './init-command.js';
 import { runDoctor } from './doctor-command.js';
+import { runStatus } from './status-command.js';
+import { setActiveChange, clearActiveChange, markProjectState } from '../core/state-manager.js';
 
 function parseFixArgs(argv) {
   const issue = argv
@@ -32,6 +34,11 @@ export async function runCli(argv = process.argv.slice(2)) {
     return;
   }
 
+  if (command === 'status') {
+    runStatus(cwd);
+    return;
+  }
+
   if (command === 'fix') {
     const { issue, openPr, dryRun, noValidate } = parseFixArgs(argv);
 
@@ -43,34 +50,47 @@ export async function runCli(argv = process.argv.slice(2)) {
 
     console.log('🔧 PDD Fix Workflow');
     console.log(`Issue: ${issue}`);
-    console.log(`Open PR prep: ${openPr ? 'yes' : 'no'}`);
-    console.log(`Dry run: ${dryRun ? 'yes' : 'no'}`);
-    console.log(`Validation: ${noValidate ? 'skipped' : 'enabled'}`);
 
     if (dryRun) {
       console.log('📝 Dry run only. No files created.');
       return;
     }
 
-    const patch = generatePatchArtifacts({ issue, baseDir: cwd });
+    try {
+      // set state to in-progress
+      const changeId = `change-${Date.now()}`;
+      setActiveChange(cwd, changeId, 'in-progress');
 
-    console.log('🧩 Patch artifacts created:');
-    patch.files.forEach(file => console.log(`- ${file}`));
+      console.log(`Tracking change: ${changeId}`);
 
-    if (!noValidate) {
-      runValidation(cwd);
+      const patch = generatePatchArtifacts({ issue, baseDir: cwd });
+
+      console.log('🧩 Patch artifacts created:');
+      patch.files.forEach(file => console.log(`- ${file}`));
+
+      if (!noValidate) {
+        runValidation(cwd);
+      }
+
+      if (openPr) {
+        await openPullRequest({
+          issue,
+          changeId: patch.changeId,
+          changeDir: patch.changeDir,
+          baseDir: cwd
+        });
+      }
+
+      // success
+      clearActiveChange(cwd, 'completed');
+
+      console.log('✅ Fix workflow finished.');
+
+    } catch (error) {
+      console.error('❌ Fix failed:', error.message);
+      markProjectState(cwd, 'failed');
     }
 
-    if (openPr) {
-      await openPullRequest({
-        issue,
-        changeId: patch.changeId,
-        changeDir: patch.changeDir,
-        baseDir: cwd
-      });
-    }
-
-    console.log('✅ Fix workflow finished.');
     return;
   }
 
@@ -81,10 +101,12 @@ export async function runCli(argv = process.argv.slice(2)) {
     console.log('  pdd init <project-name>');
     console.log('  pdd init --here [--force] [--upgrade] [--ide=claude|cursor|copilot|claude,cursor,copilot]');
     console.log('  pdd doctor [--fix]');
+    console.log('  pdd status');
     console.log('  pdd fix "description" [--open-pr] [--dry-run] [--no-validate]');
     console.log('');
     console.log('Examples:');
     console.log('  pdd doctor --fix');
+    console.log('  pdd status');
     console.log('  pdd init --here --upgrade');
     console.log('  pdd fix "login not saving incomeStatus" --open-pr');
     console.log('');
