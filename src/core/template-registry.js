@@ -1,4 +1,4 @@
-export const PDD_TEMPLATE_VERSION = '0.2.0';
+export const PDD_TEMPLATE_VERSION = '0.2.1';
 
 export const CORE_TEMPLATES = {
   '.pdd/constitution.md': `# PDD Constitution
@@ -90,6 +90,9 @@ approved | needs-review | partial
 ## Purpose
 Understand the current system before making changes.
 
+## Scope
+Summary only. For operational guidance in Cursor, use \`.cursor/commands/pdd-recon.md\`.
+
 ## Output
 - flow mapping
 - impacted files
@@ -100,6 +103,9 @@ Understand the current system before making changes.
 
 ## Purpose
 Fix bugs with minimal safe delta.
+
+## Scope
+Summary only. For operational guidance in Cursor, use \`.cursor/commands/pdd-fix.md\`.
 
 ## Steps
 1. reproduce issue
@@ -112,6 +118,9 @@ Fix bugs with minimal safe delta.
 ## Purpose
 Add features safely in existing systems.
 
+## Scope
+Summary only. For operational guidance in Cursor, use \`.cursor/commands/pdd-feature.md\`.
+
 ## Steps
 1. understand current behavior
 2. define minimal extension
@@ -123,10 +132,24 @@ Add features safely in existing systems.
 ## Purpose
 Validate changes and ensure safety.
 
+## Scope
+Summary only. For operational guidance in Cursor, use \`.cursor/commands/pdd-verify.md\`.
+
 ## Checklist
 - tests pass
 - no regression detected
 - expected behavior confirmed
+`,
+  '.pdd/commands/README.md': `# PDD Commands (Summary)
+
+Files in this directory are concise summaries of each workflow command.
+
+When using Cursor, the operational source of truth is:
+- \`.cursor/commands/pdd.md\`
+- \`.cursor/commands/pdd-recon.md\`
+- \`.cursor/commands/pdd-fix.md\`
+- \`.cursor/commands/pdd-feature.md\`
+- \`.cursor/commands/pdd-verify.md\`
 `,
   '.pdd/memory/system-map.md': `# System Map
 
@@ -145,7 +168,7 @@ Map the structure of the system.
 ## Hotspots
 - 
 `,
-  '.pdd/version.json': JSON.stringify({ templateVersion: '0.2.0' }, null, 2) + '\n'
+  '.pdd/version.json': JSON.stringify({ templateVersion: '0.2.1' }, null, 2) + '\n'
 };
 
 export const IDE_ADAPTERS = {
@@ -174,7 +197,7 @@ This repo uses **PDD**: safe changes in existing systems. The agent should:
 - Use templates under \`.pdd/templates/\` when producing specs or reports (\`delta-spec\`, \`patch-plan\`, \`verification-report\`).
 - Follow playbooks under \`.pdd/commands/\` when the user invokes a PDD slash command.
 
-Slash commands live in \`.cursor/commands/\` (type \`/\` in Chat/Agent). They mirror the PDD playbooks.
+Slash commands live in \`.cursor/commands/\` (type \`/\` in Chat/Agent). They are the primary operational guidance for Cursor.
 `,
     '.cursor/commands/pdd.md': `---
 description: "PDD — main workflow (Patch-Driven Development)"

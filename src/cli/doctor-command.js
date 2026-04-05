@@ -8,6 +8,14 @@ function exists(baseDir, relativePath) {
   return fs.existsSync(path.join(baseDir, relativePath));
 }
 
+function cursorAdapterInstalled(baseDir) {
+  return (
+    exists(baseDir, '.cursor/rules/pdd.mdc') ||
+    exists(baseDir, '.cursor/commands/pdd.md') ||
+    exists(baseDir, '.cursor/pdd.prompt.md')
+  );
+}
+
 function readVersion(baseDir) {
   const file = path.join(baseDir, '.pdd/version.json');
   if (!fs.existsSync(file)) return null;
@@ -39,7 +47,7 @@ export function runDoctor(baseDir = process.cwd(), argv = []) {
 
   const adapters = {
     claude: exists(baseDir, '.claude/commands/pdd.md'),
-    cursor: exists(baseDir, '.cursor/pdd.prompt.md'),
+    cursor: cursorAdapterInstalled(baseDir),
     copilot: exists(baseDir, '.github/copilot/pdd.prompt.md')
   };
 
