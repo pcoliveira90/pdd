@@ -1,7 +1,15 @@
 import fs from 'fs';
 import path from 'path';
+import readline from 'node:readline/promises';
+import { stdin as input, stdout as output } from 'node:process';
 import { CORE_TEMPLATES, IDE_ADAPTERS, PDD_TEMPLATE_VERSION } from '../core/template-registry.js';
 import { buildTemplateUpgradePlan, applyTemplateUpgradePlan } from '../core/template-upgrade.js';
+import {
+  IDE_ORDER,
+  IDE_LABELS,
+  detectIdePresence,
+  keysWhereDetected
+} from '../core/ide-detector.js';
 
 function ensureDir(filePath) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -17,11 +25,13 @@ function normalizeIdeList(argv) {
   const ideArg = argv.find(arg => arg.startsWith('--ide='));
   if (!ideArg) return [];
 
-  return ideArg
-    .split('=')[1]
-    ?.split(',')
-    .map(v => v.trim())
-    .filter(Boolean) || [];
+  return (
+    ideArg
+      .split('=')[1]
+      ?.split(',')
+      .map(v => v.trim())
+      .filter(Boolean) || []
+  );
 }
 
 function readInstalledVersion(baseDir) {
@@ -80,12 +90,120 @@ function printUpgradeSummary(summary) {
   }
 }
 
-export function runInit(argv = process.argv.slice(2)) {
+function resolveIdeSelectionFromInput(raw, presence) {
+  const t = raw.trim().toLowerCase();
+  if (t === '' || t === 'y' || t === 'yes' || t === 'sim' || t === 's') {
+    return keysWhereDetected(presence);
+  }
+  if (t === 'n' || t === 'no' || t === 'nao') {
+    return [];
+  }
+  if (t === 'a' || t === 'all' || t === 'todos') {
+    return [...IDE_ORDER];
+  }
+
+  const tokens = t.split(/[\s,]+/).map(s => s.trim()).filter(Boolean);
+  if (tokens.length > 0 && tokens.every(p => /^\d+$/.test(p))) {
+    const selected = new Set();
+    for (const p of tokens) {
+      const n = parseInt(p, 10);
+      if (n >= 1 && n <= IDE_ORDER.length) {
+        selected.add(IDE_ORDER[n - 1]);
+      }
+    }
+    return IDE_ORDER.filter(k => selected.has(k));
+  }
+
+  const names = t.split(',').map(s => s.trim()).filter(Boolean);
+  if (names.length > 0) {
+    const unknown = names.filter(id => !IDE_ADAPTERS[id]);
+    if (unknown.length) {
+      console.warn(`⚠️ IDE desconhecido(s): ${unknown.join(', ')} — ignorado(s)`);
+    }
+    const known = names.filter(id => IDE_ADAPTERS[id]);
+    if (known.length === 0) {
+      return null;
+    }
+    return IDE_ORDER.filter(k => known.includes(k));
+  }
+
+  return null;
+}
+
+async function promptIdeSelection() {
+  const presence = detectIdePresence();
+  const suggested = keysWhereDetected(presence);
+
+  console.log('');
+  console.log('📦 PDD — adaptadores por IDE (prompts / comandos)');
+  console.log('');
+
+  IDE_ORDER.forEach((id, i) => {
+    const label = IDE_LABELS[id];
+    const ok = presence[id] ? 'sim' : 'não';
+    console.log(`  [${i + 1}] ${id.padEnd(8)} — ${label}`);
+    console.log(`      detetado nesta máquina: ${ok}`);
+  });
+
+  console.log('');
+  if (suggested.length > 0) {
+    console.log(`Sugestão (apenas detetados): ${suggested.join(', ')}`);
+  } else {
+    console.log('Nenhum IDE foi detetado automaticamente.');
+    console.log('Pode ainda instalar adaptadores manualmente (útil para outro ambiente ou CI).');
+  }
+
+  console.log('');
+  console.log('Opções:');
+  console.log('  Enter  → aceitar a sugestão');
+  console.log('  a      → instalar todos (cursor, claude, copilot)');
+  console.log('  n      → não instalar adaptadores');
+  console.log('  1,3    → números separados por vírgula ou espaço');
+  console.log('  cursor,copilot → nomes separados por vírgula');
+  console.log('');
+
+  const rl = readline.createInterface({ input, output });
+  try {
+    let answer = (await rl.question('> ')).trim();
+    if (answer === '') {
+      return suggested;
+    }
+
+    let resolved = resolveIdeSelectionFromInput(answer, presence);
+    while (resolved === null) {
+      console.log('Não percebi. Use Enter, a, n, números (ex.: 1,3) ou nomes (ex.: cursor,claude).');
+      answer = (await rl.question('> ')).trim();
+      if (answer === '') {
+        return suggested;
+      }
+      resolved = resolveIdeSelectionFromInput(answer, presence);
+    }
+    return resolved;
+  } finally {
+    rl.close();
+  }
+}
+
+async function resolveIdeListInteractive(argv) {
+  if (argv.includes('--no-ide-prompt') || process.env.CI === 'true') {
+    return [];
+  }
+  if (argv.includes('-y') || argv.includes('--yes')) {
+    const presence = detectIdePresence();
+    const detected = keysWhereDetected(presence);
+    return detected.length > 0 ? detected : [...IDE_ORDER];
+  }
+  if (!process.stdin.isTTY) {
+    return [];
+  }
+  return promptIdeSelection();
+}
+
+export async function runInit(argv = process.argv.slice(2)) {
   const cwd = process.cwd();
   const here = argv.includes('--here');
   const force = argv.includes('--force');
   const upgrade = argv.includes('--upgrade');
-  const ideList = normalizeIdeList(argv);
 
   const projectName = !here && argv[1] && !argv[1].startsWith('--') ? argv[1] : null;
   const baseDir = here ? cwd : path.join(cwd, projectName || 'pdd-project');
@@ -100,7 +218,6 @@ export function runInit(argv = process.argv.slice(2)) {
     const plan = buildTemplateUpgradePlan(baseDir, CORE_TEMPLATES);
     const summary = applyTemplateUpgradePlan(baseDir, CORE_TEMPLATES, plan, force);
 
-    // always update version.json
     writeFile(baseDir, '.pdd/version.json', JSON.stringify({ templateVersion: PDD_TEMPLATE_VERSION }, null, 2));
 
     printUpgradeSummary(summary);
@@ -108,14 +225,23 @@ export function runInit(argv = process.argv.slice(2)) {
     if (installedVersion === PDD_TEMPLATE_VERSION) {
       console.log('ℹ️ Templates were already up to date.');
     }
-
   } else {
-    // basic init (no intelligence needed yet)
     for (const [file, content] of Object.entries(CORE_TEMPLATES)) {
       writeFile(baseDir, file, content);
     }
 
     console.log('🚀 PDD initialized');
+  }
+
+  let ideList = normalizeIdeList(argv);
+  if (ideList.length > 0) {
+    const unknown = ideList.filter(id => !IDE_ADAPTERS[id]);
+    if (unknown.length) {
+      console.warn(`⚠️ Adaptador(es) desconhecido(s): ${unknown.join(', ')} — ignorado(s)`);
+    }
+    ideList = ideList.filter(id => IDE_ADAPTERS[id]);
+  } else {
+    ideList = await resolveIdeListInteractive(argv);
   }
 
   const ideResults = installIdeAdapters(baseDir, ideList, force);

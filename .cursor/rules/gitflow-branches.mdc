@@ -1,0 +1,32 @@
+---
+description: Branching model GitFlow — nomes e fluxo de integração
+alwaysApply: true
+---
+
+# GitFlow — branches
+
+Seguir este modelo em todo o trabalho com git neste repositório.
+
+## Ramos permanentes
+
+- **`main`** — código em produção / releases publicados. Só entram merges estáveis (release ou hotfix).
+- **`develop`** — integração contínua das features. Base para novas `feature/*`.
+
+## Ramos temporários
+
+- **`feature/<nome-curto>`** — ramifica a partir de **`develop`**. Ex.: `feature/cli-status-json`, `feature/doctor-remediation`. Merge de volta em **`develop`** via PR.
+- **`release/<versão>`** — preparação de release (bump, changelog, ajustes finos). Ramifica de **`develop`**, merge em **`main`** e de volta em **`develop`** quando a release estiver fechada.
+- **`hotfix/<nome-curto>`** — correção urgente em produção. Ramifica de **`main`**, merge em **`main`** e port para **`develop`**.
+
+## Regras
+
+- Não fazer commits diretos em **`main`** (exceto fluxo automatizado acordado).
+- Novas funcionalidades: sempre **`feature/*`** a partir de **`develop`**, não a partir de `main`.
+- Nomes em **kebab-case** após o prefixo; sem espaços.
+- PRs pequenos e focados; alinhar com o que já existe no remoto antes de abrir PR.
+
+## Exemplos de nomes válidos
+
+- `feature/init-ide-detector`
+- `release/0.3.0`
+- `hotfix/npm-publish-token`

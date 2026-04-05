@@ -4,10 +4,26 @@ Thanks for your interest in contributing to PDD.
 
 ## Development Flow
 
-1. Fork or create a branch
-2. Make focused changes
-3. Use clear commit messages
-4. Open a pull request with context and validation notes
+### GitFlow (branches)
+
+This repo follows **GitFlow**:
+
+| Branch | Purpose |
+|--------|---------|
+| `main` | Production / tagged releases — stable merges only |
+| `develop` | Integration — default base for new work |
+| `feature/<name>` | New functionality (branch from `develop`) |
+| `release/<version>` | Release preparation |
+| `hotfix/<name>` | Urgent production fix (branch from `main`) |
+
+Use **kebab-case** after the prefix. Avoid direct commits to `main`.
+
+### Typical steps
+
+1. Branch from `develop` (e.g. `feature/my-change`) or use the same naming on a fork
+2. Small, focused changes
+3. Clear commit messages (see below)
+4. Pull request with context and validation notes
 
 ## Commit Conventions
 

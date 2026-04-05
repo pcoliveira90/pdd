@@ -25,7 +25,7 @@ export async function runCli(argv = process.argv.slice(2)) {
   const cwd = process.cwd();
 
   if (command === 'init') {
-    runInit(argv);
+    await runInit(argv);
     return;
   }
 
@@ -94,7 +94,7 @@ export async function runCli(argv = process.argv.slice(2)) {
     console.log('');
     console.log('Commands:');
     console.log('  pdd init <project-name>');
-    console.log('  pdd init --here [--force] [--upgrade] [--ide=claude|cursor|copilot|claude,cursor,copilot]');
+    console.log('  pdd init --here [--force] [--upgrade] [-y] [--no-ide-prompt] [--ide=claude|cursor|copilot|...]');
     console.log('  pdd doctor [--fix]');
     console.log('  pdd status');
     console.log('  pdd fix "description" [--open-pr] [--dry-run] [--no-validate]');
