@@ -4,6 +4,7 @@ import readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { CORE_TEMPLATES, IDE_ADAPTERS, PDD_TEMPLATE_VERSION } from '../core/template-registry.js';
 import { buildTemplateUpgradePlan, applyTemplateUpgradePlan } from '../core/template-upgrade.js';
+import { runInitialProjectReviewAgent } from '../core/project-review-agent.js';
 import {
   IDE_ORDER,
   IDE_LABELS,
@@ -88,6 +89,16 @@ function printUpgradeSummary(summary) {
   if (summary.conflicts.length > 0) {
     console.log('👉 Run with --force to overwrite conflicts');
   }
+}
+
+function ensureConstitution(baseDir, force = false) {
+  const constitutionPath = path.join(baseDir, '.pdd/constitution.md');
+  if (!force && fs.existsSync(constitutionPath)) {
+    return false;
+  }
+
+  writeFile(baseDir, '.pdd/constitution.md', CORE_TEMPLATES['.pdd/constitution.md']);
+  return true;
 }
 
 function resolveIdeSelectionFromInput(raw, presence) {
@@ -204,6 +215,7 @@ export async function runInit(argv = process.argv.slice(2)) {
   const here = argv.includes('--here');
   const force = argv.includes('--force');
   const upgrade = argv.includes('--upgrade');
+  const noProjectReview = argv.includes('--no-project-review');
 
   const projectName = !here && argv[1] && !argv[1].startsWith('--') ? argv[1] : null;
   const baseDir = here ? cwd : path.join(cwd, projectName || 'pdd-project');
@@ -233,6 +245,11 @@ export async function runInit(argv = process.argv.slice(2)) {
     console.log('🚀 PDD initialized');
   }
 
+  const constitutionCreated = ensureConstitution(baseDir, force);
+  if (constitutionCreated) {
+    console.log('📜 Constitution ensured: .pdd/constitution.md');
+  }
+
   let ideList = normalizeIdeList(argv);
   if (ideList.length > 0) {
     const unknown = ideList.filter(id => !IDE_ADAPTERS[id]);
@@ -246,4 +263,8 @@ export async function runInit(argv = process.argv.slice(2)) {
 
   const ideResults = installIdeAdapters(baseDir, ideList, force);
   ideResults.forEach(r => console.log(`- ${r.status}: ${r.path}`));
+
+  if (!noProjectReview) {
+    await runInitialProjectReviewAgent(baseDir, argv);
+  }
 }

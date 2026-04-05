@@ -13,7 +13,15 @@ npx @pcoliveira90/pdd init
   templates/
   commands/
   memory/
+  review/
 ```
+
+During `pdd init`, PDD also runs an initial project review agent and writes:
+- `.pdd/review/project-review.md`
+- `.pdd/review/project-review-status.json`
+
+You can approve or request adjustments in the terminal prompt.
+Use `--no-project-review` to skip this step.
 
 ## First workflow
 

@@ -110,7 +110,7 @@ export async function runCli(argv = process.argv.slice(2)) {
     console.log('');
     console.log('Commands:');
     console.log('  pdd init <project-name>');
-    console.log('  pdd init --here [--force] [--upgrade] [-y] [--no-ide-prompt] [--ide=claude|cursor|copilot|...]');
+    console.log('  pdd init --here [--force] [--upgrade] [-y] [--no-ide-prompt] [--no-project-review] [--ide=claude|cursor|copilot|...]');
     console.log('  pdd doctor [--fix]');
     console.log('  pdd status');
     console.log('  pdd fix "description" [--open-pr] [--dry-run] [--no-validate]');
