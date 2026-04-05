@@ -18,7 +18,130 @@ function slugify(value) {
     .slice(0, 48);
 }
 
-export function generatePatchArtifacts({ issue, baseDir = process.cwd() }) {
+function renderStructuralRiskSection(riskAssessment) {
+  if (!riskAssessment?.hasHighRisk) {
+    return 'No high structural impact signals detected from issue description.';
+  }
+
+  const lines = [];
+  for (const hit of riskAssessment.hits) {
+    lines.push(`- ${hit.label} (${hit.id})`);
+  }
+  return lines.join('\n');
+}
+
+function renderGapCheckSection(gapCheck) {
+  if (!gapCheck || gapCheck.summary.total === 0) {
+    return '- status: ok\n- notes: no automatic gaps detected';
+  }
+
+  const lines = [
+    `- status: ${gapCheck.summary.status}`,
+    `- total: ${gapCheck.summary.total}`,
+    `- critical: ${gapCheck.summary.critical}`,
+    `- high: ${gapCheck.summary.high}`
+  ];
+
+  for (const gap of gapCheck.gaps) {
+    lines.push(`- [${gap.severity}] ${gap.title}`);
+    lines.push(`  recommendation: ${gap.recommendation}`);
+  }
+
+  return lines.join('\n');
+}
+
+function renderMappedTasksSection(gapCheck) {
+  if (!gapCheck || !Array.isArray(gapCheck.mappedTasks) || gapCheck.mappedTasks.length === 0) {
+    return '- not available';
+  }
+
+  return gapCheck.mappedTasks.map(task => `- ${task}`).join('\n');
+}
+
+function writeWorkItemRecords({ baseDir, changeId, issue, gapCheck }) {
+  const recordsBase = path.join(baseDir, '.pdd', 'work-items');
+  const changeDir = path.join(recordsBase, 'changes', changeId);
+  const planDir = path.join(recordsBase, 'plans', changeId);
+  const featureDir = path.join(recordsBase, 'features');
+
+  writeFile(
+    path.join(changeDir, 'proposal.md'),
+    `# Change Proposal
+
+## Change ID
+${changeId}
+
+## Issue
+${issue}
+
+## Proposed Solution (concise)
+
+## Why this is the minimal safe option
+
+## Validation with user
+- status: pending
+- feedback:
+
+## User edits to proposal
+`
+  );
+
+  writeFile(
+    path.join(changeDir, 'decision.md'),
+    `# Change Decision
+
+## Change ID
+${changeId}
+
+## Decision
+- approved: yes | no
+- approved_by:
+- approved_at:
+
+## Notes
+`
+  );
+
+  writeFile(
+    path.join(planDir, 'plan.md'),
+    `# Execution Plan
+
+## Change ID
+${changeId}
+
+## Mapped Tasks
+${renderMappedTasksSection(gapCheck)}
+
+## Planned Steps (concise)
+1.
+2.
+3.
+
+## Validation and Coverage
+- tests:
+- coverage target:
+`
+  );
+
+  writeFile(
+    path.join(featureDir, '.gitkeep'),
+    ''
+  );
+
+  return [
+    path.join('.pdd', 'work-items', 'changes', changeId, 'proposal.md'),
+    path.join('.pdd', 'work-items', 'changes', changeId, 'decision.md'),
+    path.join('.pdd', 'work-items', 'plans', changeId, 'plan.md'),
+    path.join('.pdd', 'work-items', 'features', '.gitkeep')
+  ];
+}
+
+export function generatePatchArtifacts({
+  issue,
+  baseDir = process.cwd(),
+  riskAssessment = null,
+  gapCheck = null
+}) {
   const timestamp = Date.now();
   const changeId = `change-${timestamp}-${slugify(issue || 'update')}`;
   const changeDir = path.join(baseDir, 'changes', changeId);
@@ -26,7 +149,8 @@ export function generatePatchArtifacts({ issue, baseDir = process.cwd() }) {
   const files = [
     path.join('changes', changeId, 'delta-spec.md'),
     path.join('changes', changeId, 'patch-plan.md'),
-    path.join('changes', changeId, 'verification-report.md')
+    path.join('changes', changeId, 'verification-report.md'),
+    path.join('changes', changeId, 'gaps-report.md')
   ];
 
   writeFile(
@@ -56,6 +180,12 @@ bugfix | feature | refactor-safe | hotfix
 
 ## Constraints
 
+## Structural Impact Risks
+${renderStructuralRiskSection(riskAssessment)}
+
+## Automatic Gap Check
+${renderGapCheckSection(gapCheck)}
+
 ## Minimal Safe Delta
 
 ## Alternatives Considered
@@ -80,6 +210,9 @@ ${issue}
 
 ## Files to Change
 
+## Task Mapping
+${renderMappedTasksSection(gapCheck)}
+
 ## Execution Steps
 1. Reproduce issue
 2. Confirm root cause
@@ -88,6 +221,12 @@ ${issue}
 5. Run validations
 
 ## Regression Risks
+
+## Structural Impact Risks
+${renderStructuralRiskSection(riskAssessment)}
+
+## Automatic Gap Check
+${renderGapCheckSection(gapCheck)}
 
 ## Rollback Strategy
 `
@@ -109,6 +248,11 @@ ${issue}
 
 ## Tests Run
 
+## Test Coverage
+- minimum threshold:
+- measured result:
+- status: pass | fail | not-available
+
 ## Manual Validation
 
 ## Residual Risks
@@ -117,6 +261,37 @@ ${issue}
 pending
 `
   );
+
+  writeFile(
+    path.join(changeDir, 'gaps-report.md'),
+    `# Gaps Report
+
+## Change ID
+${changeId}
+
+## Issue
+${issue}
+
+## Task Mapping
+${renderMappedTasksSection(gapCheck)}
+
+## Automatic Gap Check Summary
+${renderGapCheckSection(gapCheck)}
+
+## Reviewer Decision
+- approved: yes | no
+- notes:
+`
+  );
+
+  const workItemFiles = writeWorkItemRecords({
+    baseDir,
+    changeId,
+    issue,
+    gapCheck
+  });
+
+  files.push(...workItemFiles);
 
   return {
     changeId,

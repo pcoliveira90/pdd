@@ -8,6 +8,13 @@ import { runInit } from './init-command.js';
 import { runDoctor } from './doctor-command.js';
 import { runStatus } from './status-command.js';
 import { runResilientFixWorkflow } from '../core/fix-runner.js';
+import {
+  analyzeStructuralImpact,
+  formatRiskSummary,
+  enforceStructuralRiskAck
+} from '../core/structural-risk-guard.js';
+import { runAutomaticGapCheck, formatGapCheckSummary } from '../core/gap-checker.js';
+import { maybeAutoRelocateToWorktree } from '../core/worktree-guard.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -18,6 +25,12 @@ function readCliVersion() {
 }
 
 function parseFixArgs(argv) {
+  const minCoverageArg = argv.find(arg => arg.startsWith('--min-coverage='));
+  const parsedMinCoverage = minCoverageArg ? Number(minCoverageArg.split('=')[1]) : null;
+  const minCoverage = Number.isFinite(parsedMinCoverage)
+    ? parsedMinCoverage
+    : Number(process.env.PDD_MIN_COVERAGE || 80);
+
   const issue = argv
     .filter(arg => !arg.startsWith('--') && arg !== 'fix')
     .join(' ')
@@ -27,7 +40,11 @@ function parseFixArgs(argv) {
     issue,
     openPr: argv.includes('--open-pr'),
     dryRun: argv.includes('--dry-run'),
-    noValidate: argv.includes('--no-validate')
+    noValidate: argv.includes('--no-validate'),
+    ackStructuralRisk: argv.includes('--ack-structural-risk'),
+    minCoverage,
+    requireCoverage: argv.includes('--require-coverage'),
+    noCoverageGate: argv.includes('--no-coverage-gate')
   };
 }
 
@@ -56,11 +73,27 @@ export async function runCli(argv = process.argv.slice(2)) {
   }
 
   if (command === 'fix') {
-    const { issue, openPr, dryRun, noValidate } = parseFixArgs(argv);
+    const relocated = maybeAutoRelocateToWorktree({
+      cwd,
+      argv,
+      commandName: 'fix'
+    });
+    if (relocated) return;
+
+    const {
+      issue,
+      openPr,
+      dryRun,
+      noValidate,
+      ackStructuralRisk,
+      minCoverage,
+      requireCoverage,
+      noCoverageGate
+    } = parseFixArgs(argv);
 
     if (!issue) {
       console.error('❌ Missing issue description.');
-      console.log('Use: pdd fix "description" [--open-pr] [--dry-run] [--no-validate]');
+      console.log('Use: pdd fix "description" [--open-pr] [--dry-run] [--no-validate] [--ack-structural-risk] [--min-coverage=80] [--require-coverage] [--allow-main-worktree]');
       process.exit(1);
     }
 
@@ -69,16 +102,42 @@ export async function runCli(argv = process.argv.slice(2)) {
     console.log(`Open PR prep: ${openPr ? 'yes' : 'no'}`);
     console.log(`Dry run: ${dryRun ? 'yes' : 'no'}`);
     console.log(`Validation: ${noValidate ? 'skipped' : 'enabled'}`);
+    console.log(`Coverage gate: ${noCoverageGate ? 'disabled' : `enabled (min ${minCoverage}%)`}`);
+
+    const riskAssessment = analyzeStructuralImpact(issue);
+    console.log(formatRiskSummary(riskAssessment));
+    const gapCheck = runAutomaticGapCheck({
+      issue,
+      riskAssessment,
+      minCoverage
+    });
+    console.log(formatGapCheckSummary(gapCheck));
 
     try {
+      await enforceStructuralRiskAck({
+        assessment: riskAssessment,
+        ackFlag: ackStructuralRisk,
+        dryRun
+      });
+
       const result = await runResilientFixWorkflow({
         baseDir: cwd,
         issue,
         dryRun,
         noValidate,
         openPr,
-        generatePatchArtifacts,
-        runValidation,
+        generatePatchArtifacts: args =>
+          generatePatchArtifacts({
+            ...args,
+            riskAssessment,
+            gapCheck
+          }),
+        runValidation: targetBaseDir =>
+          runValidation(targetBaseDir, {
+            coverageGate: !noCoverageGate,
+            minCoverage,
+            requireCoverage
+          }),
         openPullRequest
       });
 
@@ -113,7 +172,7 @@ export async function runCli(argv = process.argv.slice(2)) {
     console.log('  pdd init --here [--force] [--upgrade] [-y] [--no-ide-prompt] [--no-project-review] [--ide=claude|cursor|copilot|...]');
     console.log('  pdd doctor [--fix]');
     console.log('  pdd status');
-    console.log('  pdd fix "description" [--open-pr] [--dry-run] [--no-validate]');
+    console.log('  pdd fix "description" [--open-pr] [--dry-run] [--no-validate] [--ack-structural-risk] [--min-coverage=80] [--require-coverage] [--no-coverage-gate] [--allow-main-worktree]');
     console.log('  pdd version   (or: pdd --version, pdd -v)');
     console.log('');
     console.log('Examples:');

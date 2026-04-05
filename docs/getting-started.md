@@ -14,6 +14,7 @@ npx @pcoliveira90/pdd init
   commands/
   memory/
   review/
+  work-items/
 ```
 
 During `pdd init`, PDD also runs an initial project review agent and writes:
@@ -22,6 +23,12 @@ During `pdd init`, PDD also runs an initial project review agent and writes:
 
 You can approve or request adjustments in the terminal prompt.
 Use `--no-project-review` to skip this step.
+
+PDD also provides `.pdd/memory/model-routing.md` with guidance for choosing
+the most appropriate model for analysis, build, tests, and review phases.
+
+PDD records plans/changes/features in `.pdd/work-items/`, including editable proposals
+that users can adjust before final approval.
 
 ## First workflow
 

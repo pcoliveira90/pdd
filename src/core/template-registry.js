@@ -1,4 +1,4 @@
-export const PDD_TEMPLATE_VERSION = '0.2.0';
+export const PDD_TEMPLATE_VERSION = '0.3.2';
 
 export const CORE_TEMPLATES = {
   '.pdd/constitution.md': `# PDD Constitution
@@ -23,6 +23,15 @@ Prefer existing patterns over new ones.
 
 ## 7. Verifiable Outcome
 Every change must be validated.
+
+## 8. Business Rule Integrity
+Never break core business rules while fixing or extending behavior.
+
+## 9. Usability First
+Every change must preserve or improve user experience and task flow.
+
+## 10. Security by Default
+Every change must evaluate security impact before implementation.
 `,
   '.pdd/templates/delta-spec.md': `# Delta Spec
 
@@ -44,6 +53,17 @@ bugfix | feature | refactor-safe | hotfix
 ## Impacted Areas
 
 ## Constraints
+
+## Business Rules Impact
+
+## Usability Impact
+
+## Security Impact
+
+## Structural Impact Risks
+- database/schema/data migration impact
+- API/event contract compatibility impact
+- rollout/rollback complexity impact
 
 ## Minimal Safe Delta
 
@@ -68,6 +88,17 @@ bugfix | feature | refactor-safe | hotfix
 
 ## Regression Risks
 
+## Business Rules Risks
+
+## Usability Risks
+
+## Security Risks
+
+## Structural Impact Risks
+- database/schema/data migration impact
+- API/event contract compatibility impact
+- rollout/rollback complexity impact
+
 ## Rollback Strategy
 `,
   '.pdd/templates/verification-report.md': `# Verification Report
@@ -78,12 +109,40 @@ bugfix | feature | refactor-safe | hotfix
 
 ## Tests Run
 
+## Test Coverage
+- minimum threshold:
+- measured result:
+- status: pass | fail | not-available
+
+## Business Rule Validation
+
+## Usability Validation
+
+## Security Validation
+
 ## Manual Validation
 
 ## Residual Risks
 
 ## Final Status
 approved | needs-review | partial
+`,
+  '.pdd/templates/gaps-report.md': `# Gaps Report
+
+## Task Mapping
+
+## Automatic Gap Check Summary
+
+## Gaps by Severity
+- critical:
+- high:
+- medium:
+
+## Mitigation Plan
+
+## Reviewer Decision
+- approved: yes | no
+- notes:
 `,
   '.pdd/commands/pdd-recon.md': `# pdd.recon
 
@@ -145,7 +204,43 @@ Map the structure of the system.
 ## Hotspots
 - 
 `,
-  '.pdd/version.json': JSON.stringify({ templateVersion: '0.2.0' }, null, 2) + '\n'
+  '.pdd/memory/model-routing.md': `# Model Routing
+
+## Goal
+Pick the most suitable AI model for each task type.
+
+## Task-to-Model Guidance
+- analysis/recon: prefer a more capable model for deep reasoning
+- implementation/build: prefer balanced model (quality + speed)
+- tests/coverage: prefer fast model for iterative feedback loops
+- review/risk/security: prefer a more capable model for edge cases
+
+## Decision Rule
+1. If model can be set automatically in this environment, set it by task type.
+2. If model cannot be set automatically, suggest the best model to the user.
+3. Ask for confirmation before continuing when model choice impacts quality/speed.
+
+## Output Requirement
+- chosen model profile
+- reason for choice
+- fallback suggested to user (if auto-selection is unavailable)
+`,
+  '.pdd/work-items/README.md': `# Work Items Registry
+
+PDD stores concise and editable records here:
+- plans/
+- changes/
+- features/
+
+Each change should include:
+- proposal (user can edit)
+- decision (approval and notes)
+- plan (execution and validation)
+`,
+  '.pdd/work-items/plans/.gitkeep': ``,
+  '.pdd/work-items/changes/.gitkeep': ``,
+  '.pdd/work-items/features/.gitkeep': ``,
+  '.pdd/version.json': JSON.stringify({ templateVersion: '0.3.2' }, null, 2) + '\n'
 };
 
 export const IDE_ADAPTERS = {
@@ -173,6 +268,8 @@ This repo uses **PDD**: safe changes in existing systems. The agent should:
 - Prefer **minimal safe deltas**; avoid drive-by refactors.
 - Use templates under \`.pdd/templates/\` when producing specs or reports (\`delta-spec\`, \`patch-plan\`, \`verification-report\`).
 - Follow playbooks under \`.pdd/commands/\` when the user invokes a PDD slash command.
+- For \`bugfix\` and \`feature\`, do not edit files before presenting context, business rules, risks, and plan, then waiting for explicit user approval.
+- Choose model by task type whenever possible (analysis/build/tests/review). If auto model switch is unavailable, suggest model to user and ask confirmation.
 
 Slash commands live in \`.cursor/commands/\` (type \`/\` in Chat/Agent). They mirror the PDD playbooks.
 `,
@@ -190,6 +287,7 @@ You are running **Patch-Driven Development** in this repository.
 - Obey \`.pdd/constitution.md\`.
 - Evidence before edits: locate behavior in code/tests before changing.
 - Smallest change that solves the problem; match local patterns.
+- For \`bugfix\` and \`feature\`, always stop for explicit user approval before any file edits.
 
 ## User request
 
@@ -199,15 +297,26 @@ $ARGUMENTS
 
 ## What to do
 
-1. Classify: bugfix vs feature vs exploration-only (**recon**).
-2. Name impacted files and risks.
-3. Propose a minimal plan, then implement or outline next steps.
-4. Say how to verify (tests, manual steps).
+1. Keep response concise and practical.
+2. Classify: bugfix vs feature vs recon.
+3. Map context + business rules (only essential points).
+4. Map key risks (regression, structural, usability, security).
+5. Run automatic gap check after task mapping.
+6. Present a concise proposal and ask the user to edit if needed.
+7. Ask explicit approval before any file edits.
+8. After approval, implement and validate.
 
 ## Output
 
-- Files touched or to touch
-- Risks and what you did not change on purpose
+Use this exact structure:
+1) Classification
+2) Context map
+3) Business rules
+4) Risks and structural impact
+5) Concise proposal (editable by user)
+6) Verification plan
+7) Automatic gap check
+8) Pending approval (explicit question)
 `,
     '.cursor/commands/pdd-recon.md': `---
 description: "PDD — recon (explore before editing)"
@@ -231,6 +340,7 @@ $ARGUMENTS
 - Short map: entry points, key modules, data flow if useful
 - List of files worth reading next
 - Risks and unknowns
+- Suggested model profile for next phase (analysis/build/tests/review)
 - No production edits unless the user explicitly asked to fix something
 `,
     '.cursor/commands/pdd-fix.md': `---
@@ -248,16 +358,44 @@ $ARGUMENTS
 
 ## Steps
 
+### Phase 1 — Investigation (no edits)
 1. Reproduce or infer current vs expected behavior (code/tests).
 2. Confirm root cause (not only symptoms).
-3. Apply the smallest fix; avoid scope creep.
-4. State how to verify (tests or manual).
+3. Map context (data flow, integrations, impacted modules/files).
+4. List business rules and constraints.
+5. Analyze usability impact (journeys, friction, discoverability).
+6. Analyze security impact (auth, authz, data exposure, abuse vectors).
+7. Build risk map (regression, data/contract, performance/ops, usability, security).
+   - Flag structural-impact actions explicitly (database/schema/migrations/contracts).
+8. Run automatic gap check immediately after task mapping and risk mapping.
+9. Present concise proposal and allow user edits.
+10. Ask explicit approval before editing files.
+
+### Phase 2 — Plan (no edits)
+11. Propose minimal safe delta and alternatives considered.
+12. Define verification plan (tests + manual checks + rollback).
+
+### Phase 3 — Execution (after approval)
+13. Implement approved minimal change.
+14. Validate and report residual risks.
 
 ## Output
 
-- Root cause (brief)
-- Files changed
-- Verification steps
+Use this exact structure:
+1) Current vs expected behavior
+2) Root cause
+3) Context map
+4) Business rules
+5) Risks and structural impact
+6) Concise proposal (editable by user)
+7) Verification + coverage plan
+8) Automatic gap check
+9) Pending approval (explicit question)
+
+After approval:
+10) Files changed
+11) Validation results
+12) Residual risks
 `,
     '.cursor/commands/pdd-feature.md': `---
 description: "PDD — feature (safe extension)"
@@ -274,16 +412,42 @@ $ARGUMENTS
 
 ## Steps
 
+### Phase 1 — Discovery (no edits)
 1. Understand current behavior and extension points.
-2. Define the smallest extension (APIs, files).
-3. Implement without breaking existing callers.
-4. Verification and rollback idea.
+2. Map context (user journey, modules/files, contracts, dependencies).
+3. List business rules and acceptance constraints.
+4. Analyze usability impact (journeys, accessibility, adoption friction).
+5. Analyze security impact (permissions, data exposure, misuse scenarios).
+6. Build risk map (compatibility, regression, data, performance, operational, usability, security).
+   - Flag structural-impact actions explicitly (database/schema/migrations/contracts).
+7. Run automatic gap check immediately after task mapping and risk mapping.
+8. Present concise proposal and allow user edits.
+9. Ask explicit approval before editing files.
+
+### Phase 2 — Plan (no edits)
+10. Define smallest safe extension and non-goals.
+11. Propose verification and rollback strategy.
+
+### Phase 3 — Execution (after approval)
+12. Implement approved scope.
+13. Validate compatibility and report residual risks.
 
 ## Output
 
-- Design note (what you extended and why)
-- Files changed
-- Tests or checks to run
+Use this exact structure:
+1) Feature scope
+2) Context map
+3) Business rules
+4) Risks and structural impact
+5) Concise proposal (editable by user)
+6) Verification + coverage + rollback plan
+7) Automatic gap check
+8) Pending approval (explicit question)
+
+After approval:
+9) Files changed
+10) Validation results
+11) Residual risks
 `,
     '.cursor/commands/pdd-verify.md': `---
 description: "PDD — verify (validation checklist)"
@@ -304,6 +468,7 @@ $ARGUMENTS
 - Regressions considered
 - Manual checks if needed
 - Residual risks
+- Model used for review and why
 
 ## Output
 
