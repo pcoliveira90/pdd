@@ -1,20 +1,16 @@
 import fs from 'fs';
 import path from 'path';
 import { CORE_TEMPLATES, IDE_ADAPTERS, PDD_TEMPLATE_VERSION } from '../core/template-registry.js';
+import { buildTemplateUpgradePlan, applyTemplateUpgradePlan } from '../core/template-upgrade.js';
 
 function ensureDir(filePath) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
 }
 
-function writeFile(baseDir, relativePath, content, force = false) {
+function writeFile(baseDir, relativePath, content) {
   const fullPath = path.join(baseDir, relativePath);
-  if (!force && fs.existsSync(fullPath)) {
-    return { path: relativePath, status: 'skipped' };
-  }
-
   ensureDir(fullPath);
   fs.writeFileSync(fullPath, content, 'utf-8');
-  return { path: relativePath, status: fs.existsSync(fullPath) ? 'written' : 'created' };
 }
 
 function normalizeIdeList(argv) {
@@ -24,7 +20,7 @@ function normalizeIdeList(argv) {
   return ideArg
     .split('=')[1]
     ?.split(',')
-    .map(value => value.trim())
+    .map(v => v.trim())
     .filter(Boolean) || [];
 }
 
@@ -33,20 +29,13 @@ function readInstalledVersion(baseDir) {
   if (!fs.existsSync(versionFile)) return null;
 
   try {
-    const raw = JSON.parse(fs.readFileSync(versionFile, 'utf-8'));
-    return raw.templateVersion || null;
+    return JSON.parse(fs.readFileSync(versionFile, 'utf-8')).templateVersion;
   } catch {
     return null;
   }
 }
 
-function installCore(baseDir, force) {
-  return Object.entries(CORE_TEMPLATES).map(([file, content]) =>
-    writeFile(baseDir, file, content, force)
-  );
-}
-
-function installIdeAdapters(baseDir, force, ideList) {
+function installIdeAdapters(baseDir, ideList, force) {
   const results = [];
 
   for (const ide of ideList) {
@@ -57,26 +46,37 @@ function installIdeAdapters(baseDir, force, ideList) {
     }
 
     for (const [file, content] of Object.entries(adapter)) {
-      results.push(writeFile(baseDir, file, content, force));
+      const fullPath = path.join(baseDir, file);
+      if (!force && fs.existsSync(fullPath)) {
+        results.push({ path: file, status: 'skipped' });
+        continue;
+      }
+
+      writeFile(baseDir, file, content);
+      results.push({ path: file, status: 'written' });
     }
   }
 
   return results;
 }
 
-function printSummary(baseDir, installedVersion, ideList, results, mode) {
-  console.log(mode === 'upgrade' ? '⬆️ PDD upgraded' : '🚀 PDD initialized');
-  console.log(`Path: ${baseDir}`);
-  console.log(`Template version: ${PDD_TEMPLATE_VERSION}`);
-  if (installedVersion && mode === 'upgrade') {
-    console.log(`Previous version: ${installedVersion}`);
-  }
-  if (ideList.length) {
-    console.log(`IDEs: ${ideList.join(', ')}`);
-  }
+function printUpgradeSummary(summary) {
+  console.log('⬆️ PDD upgraded');
 
-  for (const result of results) {
-    console.log(`- ${result.status}: ${result.path}`);
+  summary.created.forEach(f => console.log(`✔️ created: ${f}`));
+  summary.updated.forEach(f => console.log(`🔁 updated: ${f}`));
+  summary.conflicts.forEach(f => console.log(`⚠️ conflict: ${f}`));
+  summary.skipped.forEach(f => console.log(`⏭️ skipped: ${f}`));
+
+  console.log('');
+  console.log(`Summary:`);
+  console.log(`- created: ${summary.created.length}`);
+  console.log(`- updated: ${summary.updated.length}`);
+  console.log(`- conflicts: ${summary.conflicts.length}`);
+  console.log(`- skipped: ${summary.skipped.length}`);
+
+  if (summary.conflicts.length > 0) {
+    console.log('👉 Run with --force to overwrite conflicts');
   }
 }
 
@@ -95,14 +95,29 @@ export function runInit(argv = process.argv.slice(2)) {
   }
 
   const installedVersion = readInstalledVersion(baseDir);
-  const overwrite = force || upgrade;
 
-  const coreResults = installCore(baseDir, overwrite);
-  const ideResults = installIdeAdapters(baseDir, overwrite, ideList);
+  if (upgrade) {
+    const plan = buildTemplateUpgradePlan(baseDir, CORE_TEMPLATES);
+    const summary = applyTemplateUpgradePlan(baseDir, CORE_TEMPLATES, plan, force);
 
-  printSummary(baseDir, installedVersion, ideList, [...coreResults, ...ideResults], upgrade ? 'upgrade' : 'init');
+    // always update version.json
+    writeFile(baseDir, '.pdd/version.json', JSON.stringify({ templateVersion: PDD_TEMPLATE_VERSION }, null, 2));
 
-  if (upgrade && installedVersion === PDD_TEMPLATE_VERSION) {
-    console.log('ℹ️ Templates were already up to date.');
+    printUpgradeSummary(summary);
+
+    if (installedVersion === PDD_TEMPLATE_VERSION) {
+      console.log('ℹ️ Templates were already up to date.');
+    }
+
+  } else {
+    // basic init (no intelligence needed yet)
+    for (const [file, content] of Object.entries(CORE_TEMPLATES)) {
+      writeFile(baseDir, file, content);
+    }
+
+    console.log('🚀 PDD initialized');
   }
+
+  const ideResults = installIdeAdapters(baseDir, ideList, force);
+  ideResults.forEach(r => console.log(`- ${r.status}: ${r.path}`));
 }
