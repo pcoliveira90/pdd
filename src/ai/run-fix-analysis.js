@@ -13,7 +13,14 @@ function extractArgValue(args, name, fallback = null) {
 }
 
 function getIssueFromArgs(args) {
-  const filtered = args.filter(arg => !arg.startsWith('--provider') && !arg.startsWith('--model') && arg !== 'fix' && arg !== '--ai');
+  const filtered = args.filter(
+    arg =>
+      !arg.startsWith('--provider') &&
+      !arg.startsWith('--model') &&
+      !arg.startsWith('--task') &&
+      arg !== 'fix' &&
+      arg !== '--ai'
+  );
   return filtered.join(' ').trim();
 }
 
@@ -138,10 +145,11 @@ export async function runAiFixAnalysis(argv = process.argv.slice(2)) {
   const provider = extractArgValue(argv, '--provider', 'openai');
   const providerConfig = getAiProviderConfig(provider);
   const model = extractArgValue(argv, '--model', providerConfig.defaultModel);
+  const task = extractArgValue(argv, '--task', 'analysis');
   const issue = getIssueFromArgs(argv);
 
   if (!issue) {
-    throw new Error('Missing issue description. Example: pdd fix --ai "login not saving incomeStatus"');
+    throw new Error('Missing issue description. Example: pdd-ai --provider=openai --task=analysis "login not saving incomeStatus"');
   }
 
   const apiKey = process.env[providerConfig.envKey];
@@ -150,7 +158,11 @@ export async function runAiFixAnalysis(argv = process.argv.slice(2)) {
   }
 
   const baseUrl = resolveBaseUrl(providerConfig);
-  const prompt = buildBugfixPrompt({ issue });
+  const prompt = [
+    `Task mode: ${task}`,
+    '',
+    buildBugfixPrompt({ issue })
+  ].join('\n');
 
   let raw;
   if (provider === 'openai') {
@@ -167,6 +179,7 @@ export async function runAiFixAnalysis(argv = process.argv.slice(2)) {
 
   return {
     provider,
+    task,
     model,
     issue,
     result: parsed

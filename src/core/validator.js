@@ -1,9 +1,9 @@
 import fs from 'fs';
 import { execSync } from 'child_process';
 
-function runCommand(command) {
+function runCommand(command, baseDir) {
   console.log(`→ ${command}`);
-  execSync(command, { stdio: 'inherit' });
+  execSync(command, { stdio: 'inherit', cwd: baseDir });
 }
 
 export function runValidation(baseDir = process.cwd()) {
@@ -29,7 +29,7 @@ export function runValidation(baseDir = process.cwd()) {
   }
 
   try {
-    commands.forEach(runCommand);
+    commands.forEach(command => runCommand(command, baseDir));
   } catch {
     throw new Error('Validation failed');
   }

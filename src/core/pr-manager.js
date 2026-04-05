@@ -1,21 +1,21 @@
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
-function exec(command) {
-  execSync(command, { stdio: 'inherit' });
+function runGit(args, baseDir = process.cwd()) {
+  execFileSync('git', args, { stdio: 'inherit', cwd: baseDir });
 }
 
-export async function openPullRequest({ issue, changeId, changeDir }) {
+export async function openPullRequest({ issue, changeId, changeDir, baseDir = process.cwd() }) {
   const branch = `pdd/${changeId}`;
   const title = `fix: ${issue}`;
 
   fs.writeFileSync(path.join(changeDir, 'pr-title.txt'), title);
   fs.writeFileSync(path.join(changeDir, 'pr-body.md'), issue);
 
-  exec(`git checkout -b ${branch}`);
-  exec('git add .');
-  exec(`git commit -m "${title}"`);
+  runGit(['checkout', '-b', branch], baseDir);
+  runGit(['add', '.'], baseDir);
+  runGit(['commit', '-m', title], baseDir);
 
   console.log('PR ready (use IDE to open)');
 }

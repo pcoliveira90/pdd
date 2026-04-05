@@ -9,6 +9,7 @@ async function main() {
     console.log('\n🤖 PDD AI Analysis');
     console.log('----------------------');
     console.log(`Provider: ${result.provider}`);
+    console.log(`Task: ${result.task}`);
     console.log(`Model: ${result.model}`);
     console.log(`Issue: ${result.issue}`);
     console.log('\nResult:\n');

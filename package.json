@@ -14,8 +14,8 @@
   "scripts": {
     "start": "node bin/pdd-pro.js",
     "dev": "node bin/pdd-pro.js",
-    "test": "echo \"No tests yet\"",
-    "lint": "echo \"No lint configured\"",
+    "test": "node --test",
+    "lint": "node ./scripts/lint-js.mjs",
     "prepublishOnly": "npm pack"
   },
   "engines": {
