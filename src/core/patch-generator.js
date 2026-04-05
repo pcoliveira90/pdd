@@ -18,15 +18,14 @@ function slugify(value) {
     .slice(0, 48);
 }
 
-export function generatePatchArtifacts({ issue, baseDir = process.cwd() }) {
-  const timestamp = Date.now();
-  const changeId = `change-${timestamp}-${slugify(issue || 'update')}`;
-  const changeDir = path.join(baseDir, 'changes', changeId);
+export function generatePatchArtifacts({ issue, baseDir = process.cwd(), changeId = null }) {
+  const resolvedChangeId = changeId || `change-${Date.now()}-${slugify(issue || 'update')}`;
+  const changeDir = path.join(baseDir, 'changes', resolvedChangeId);
 
   const files = [
-    path.join('changes', changeId, 'delta-spec.md'),
-    path.join('changes', changeId, 'patch-plan.md'),
-    path.join('changes', changeId, 'verification-report.md')
+    path.join('changes', resolvedChangeId, 'delta-spec.md'),
+    path.join('changes', resolvedChangeId, 'patch-plan.md'),
+    path.join('changes', resolvedChangeId, 'verification-report.md')
   ];
 
   writeFile(
@@ -34,7 +33,7 @@ export function generatePatchArtifacts({ issue, baseDir = process.cwd() }) {
     `# Delta Spec
 
 ## Change ID
-${changeId}
+${resolvedChangeId}
 
 ## Issue
 ${issue}
@@ -71,7 +70,7 @@ bugfix | feature | refactor-safe | hotfix
     `# Patch Plan
 
 ## Change ID
-${changeId}
+${resolvedChangeId}
 
 ## Issue
 ${issue}
@@ -98,7 +97,7 @@ ${issue}
     `# Verification Report
 
 ## Change ID
-${changeId}
+${resolvedChangeId}
 
 ## Issue
 ${issue}
@@ -119,7 +118,7 @@ pending
   );
 
   return {
-    changeId,
+    changeId: resolvedChangeId,
     changeDir,
     files
   };
