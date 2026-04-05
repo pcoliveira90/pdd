@@ -4,7 +4,7 @@ import { generatePatchArtifacts } from '../core/patch-generator.js';
 import { runInit } from './init-command.js';
 import { runDoctor } from './doctor-command.js';
 import { runStatus } from './status-command.js';
-import { setActiveChange, clearActiveChange, markProjectState } from '../core/state-manager.js';
+import { runResilientFixWorkflow } from '../core/fix-runner.js';
 
 function parseFixArgs(argv) {
   const issue = argv
@@ -50,45 +50,40 @@ export async function runCli(argv = process.argv.slice(2)) {
 
     console.log('🔧 PDD Fix Workflow');
     console.log(`Issue: ${issue}`);
-
-    if (dryRun) {
-      console.log('📝 Dry run only. No files created.');
-      return;
-    }
+    console.log(`Open PR prep: ${openPr ? 'yes' : 'no'}`);
+    console.log(`Dry run: ${dryRun ? 'yes' : 'no'}`);
+    console.log(`Validation: ${noValidate ? 'skipped' : 'enabled'}`);
 
     try {
-      // set state to in-progress
-      const changeId = `change-${Date.now()}`;
-      setActiveChange(cwd, changeId, 'in-progress');
+      const result = await runResilientFixWorkflow({
+        baseDir: cwd,
+        issue,
+        dryRun,
+        noValidate,
+        openPr,
+        generatePatchArtifacts,
+        runValidation,
+        openPullRequest
+      });
 
-      console.log(`Tracking change: ${changeId}`);
-
-      const patch = generatePatchArtifacts({ issue, baseDir: cwd });
-
-      console.log('🧩 Patch artifacts created:');
-      patch.files.forEach(file => console.log(`- ${file}`));
-
-      if (!noValidate) {
-        runValidation(cwd);
+      if (result.status === 'dry-run') {
+        console.log('📝 Dry run only. No files created.');
+        return;
       }
 
-      if (openPr) {
-        await openPullRequest({
-          issue,
-          changeId: patch.changeId,
-          changeDir: patch.changeDir,
-          baseDir: cwd
-        });
+      if (result.changeId) {
+        console.log(`Tracking change: ${result.changeId}`);
       }
 
-      // success
-      clearActiveChange(cwd, 'completed');
+      if (Array.isArray(result.files) && result.files.length > 0) {
+        console.log('🧩 Patch artifacts created:');
+        result.files.forEach(file => console.log(`- ${file}`));
+      }
 
       console.log('✅ Fix workflow finished.');
-
     } catch (error) {
-      console.error('❌ Fix failed:', error.message);
-      markProjectState(cwd, 'failed');
+      console.error(`❌ ${error.message}`);
+      process.exitCode = 1;
     }
 
     return;
