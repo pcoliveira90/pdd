@@ -28,7 +28,7 @@ export async function runCli(argv = process.argv.slice(2)) {
   }
 
   if (command === 'doctor') {
-    runDoctor(cwd);
+    runDoctor(cwd, argv);
     return;
   }
 
@@ -80,13 +80,12 @@ export async function runCli(argv = process.argv.slice(2)) {
     console.log('Commands:');
     console.log('  pdd init <project-name>');
     console.log('  pdd init --here [--force] [--upgrade] [--ide=claude|cursor|copilot|claude,cursor,copilot]');
-    console.log('  pdd doctor');
+    console.log('  pdd doctor [--fix]');
     console.log('  pdd fix "description" [--open-pr] [--dry-run] [--no-validate]');
     console.log('');
     console.log('Examples:');
-    console.log('  pdd init --here --ide=claude,cursor');
+    console.log('  pdd doctor --fix');
     console.log('  pdd init --here --upgrade');
-    console.log('  pdd doctor');
     console.log('  pdd fix "login not saving incomeStatus" --open-pr');
     console.log('');
     return;

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { PDD_TEMPLATE_VERSION } from '../core/template-registry.js';
+import { runDoctorFix } from './doctor-fix.js';
 
 function exists(baseDir, relativePath) {
   return fs.existsSync(path.join(baseDir, relativePath));
@@ -22,7 +23,9 @@ function print(label, ok, detail = '') {
   console.log(`${icon} ${label}${detail ? ` — ${detail}` : ''}`);
 }
 
-export function runDoctor(baseDir = process.cwd()) {
+export function runDoctor(baseDir = process.cwd(), argv = []) {
+  const shouldFix = argv.includes('--fix');
+
   console.log('🩺 PDD Doctor\n');
 
   const coreChecks = {
@@ -67,5 +70,20 @@ export function runDoctor(baseDir = process.cwd()) {
   if (!adapters.claude && !adapters.cursor && !adapters.copilot) {
     console.log('ℹ️ No IDE adapters installed');
     console.log('👉 Run: pdd init --here --ide=claude (or cursor/copilot)');
+  }
+
+  if (shouldFix) {
+    console.log('');
+    const result = runDoctorFix(baseDir);
+
+    if (result.changed) {
+      console.log('🔧 Auto-repair applied:');
+      result.repaired.forEach(file => console.log(`- fixed: ${file}`));
+      if (result.installedVersion && result.installedVersion !== result.currentVersion) {
+        console.log(`ℹ️ Version updated: ${result.installedVersion} → ${result.currentVersion}`);
+      }
+    } else {
+      console.log('✅ No fixes needed');
+    }
   }
 }
