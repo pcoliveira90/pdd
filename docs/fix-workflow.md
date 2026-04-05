@@ -30,6 +30,7 @@ pdd fix "checkout flow regressions" --min-coverage=85 --require-coverage
 - test coverage gate with configurable threshold
 - structural-impact risk validation (database/contracts/migrations)
 - automatic gap check after task mapping
+- best-practices check in suggestion-only mode (proposal required, explicit approval required)
 - concise proposal + user editable approval step
 - PR is optional and explicit
 - keep changes small and reviewable

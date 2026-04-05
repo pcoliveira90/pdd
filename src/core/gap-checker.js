@@ -17,6 +17,74 @@ function mapTasks(issue, riskAssessment) {
   return tasks;
 }
 
+function runBestPracticesSuggestions({ normalizedIssue, riskAssessment, minCoverage }) {
+  const suggestions = [];
+
+  const hasRollback = hasAny(normalizedIssue, [
+    /\brollback\b/i,
+    /\broll back\b/i,
+    /\bplano de volta\b/i,
+    /\bconting[eê]ncia\b/i
+  ]);
+  if (!hasRollback) {
+    suggestions.push({
+      id: 'bp-rollback-plan',
+      title: 'Define rollback plan before implementation',
+      proposal: 'Add a short rollback/contingency plan and get user approval before applying changes.',
+      requiresApproval: true
+    });
+  }
+
+  const hasMonitoring = hasAny(normalizedIssue, [
+    /\bmonitor(a[cç][aã]o|ing)\b/i,
+    /\bobservability\b/i,
+    /\blog(s)?\b/i,
+    /\bmetric(s)?\b/i,
+    /\btelemetry\b/i
+  ]);
+  if (!hasMonitoring) {
+    suggestions.push({
+      id: 'bp-observability',
+      title: 'Add observability checks',
+      proposal: 'Propose minimal logs/metrics verification for post-change validation and ask user approval.',
+      requiresApproval: true
+    });
+  }
+
+  if (riskAssessment?.hasHighRisk) {
+    const hasGradualRollout = hasAny(normalizedIssue, [
+      /\bfeature flag\b/i,
+      /\bcanary\b/i,
+      /\bgradual\b/i,
+      /\bstaged\b/i
+    ]);
+    if (!hasGradualRollout) {
+      suggestions.push({
+        id: 'bp-gradual-rollout',
+        title: 'Consider gradual rollout for structural-risk changes',
+        proposal: 'Propose feature-flag/canary rollout strategy and wait for explicit user agreement.',
+        requiresApproval: true
+      });
+    }
+  }
+
+  const hasCoverageTarget = hasAny(normalizedIssue, [
+    /\bcoverage\b/i,
+    /\bcobertura\b/i,
+    new RegExp(String(minCoverage))
+  ]);
+  if (!hasCoverageTarget) {
+    suggestions.push({
+      id: 'bp-coverage-target',
+      title: 'Set explicit coverage target in proposal',
+      proposal: `Propose explicit coverage target (minimum ${minCoverage}%) and confirm with user before implementation.`,
+      requiresApproval: true
+    });
+  }
+
+  return suggestions;
+}
+
 export function runAutomaticGapCheck({ issue = '', riskAssessment = null, minCoverage = 80 }) {
   const normalized = String(issue || '').toLowerCase();
   const mappedTasks = mapTasks(normalized, riskAssessment);
@@ -106,10 +174,23 @@ export function runAutomaticGapCheck({ issue = '', riskAssessment = null, minCov
 
   const criticalCount = gaps.filter(gap => gap.severity === 'critical').length;
   const highCount = gaps.filter(gap => gap.severity === 'high').length;
+  const bestPracticeSuggestions = runBestPracticesSuggestions({
+    normalizedIssue: normalized,
+    riskAssessment,
+    minCoverage
+  });
 
   return {
     mappedTasks,
     gaps,
+    bestPractices: {
+      mode: 'suggestion-only',
+      requiresApproval: true,
+      suggestions: bestPracticeSuggestions,
+      summary: {
+        total: bestPracticeSuggestions.length
+      }
+    },
     summary: {
       total: gaps.length,
       critical: criticalCount,
@@ -125,4 +206,21 @@ export function formatGapCheckSummary(gapCheck) {
   }
 
   return `Automatic gap check: ${gapCheck.summary.total} gap(s) detected (${gapCheck.summary.critical} critical, ${gapCheck.summary.high} high).`;
+}
+
+export function formatBestPracticesSummary(gapCheck) {
+  const bestPractices = gapCheck?.bestPractices;
+  if (!bestPractices) {
+    return 'Best-practices check: unavailable.';
+  }
+
+  const count = bestPractices.summary?.total || 0;
+  if (count === 0) {
+    return 'Best-practices check (suggestion-only): no additional suggestions.';
+  }
+
+  return [
+    `Best-practices check (suggestion-only): ${count} suggestion(s).`,
+    'No suggestion should be applied automatically without explicit user approval.'
+  ].join('\n');
 }

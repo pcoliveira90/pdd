@@ -13,7 +13,11 @@ import {
   formatRiskSummary,
   enforceStructuralRiskAck
 } from '../core/structural-risk-guard.js';
-import { runAutomaticGapCheck, formatGapCheckSummary } from '../core/gap-checker.js';
+import {
+  runAutomaticGapCheck,
+  formatGapCheckSummary,
+  formatBestPracticesSummary
+} from '../core/gap-checker.js';
 import { maybeAutoRelocateToWorktree } from '../core/worktree-guard.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -112,6 +116,7 @@ export async function runCli(argv = process.argv.slice(2)) {
       minCoverage
     });
     console.log(formatGapCheckSummary(gapCheck));
+    console.log(formatBestPracticesSummary(gapCheck));
 
     try {
       await enforceStructuralRiskAck({
