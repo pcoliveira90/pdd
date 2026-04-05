@@ -17,6 +17,12 @@ pdd fix "change user table and API contract" --ack-structural-risk
 pdd fix "checkout flow regressions" --min-coverage=85 --require-coverage
 ```
 
+## Worktree behavior
+
+- `pdd fix` auto-creates a linked worktree when executed from the primary worktree.
+- Use `--allow-main-worktree` only when you intentionally want to run in the primary worktree.
+- `/pdd-fix` in Cursor is a prompt helper; it does not replace CLI execution.
+
 ## Principles
 
 - patch first
@@ -44,3 +50,8 @@ Some users want:
 - validation without GitHub interaction
 
 PDD keeps PR creation explicit.
+
+## Documentation
+
+- [Getting Started](./getting-started.md)
+- [Installation and Setup](./installation-and-setup.md)
