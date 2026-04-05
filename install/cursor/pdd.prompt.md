@@ -1,13 +1,12 @@
-# PDD Command (Cursor)
+# PDD in Cursor (Spec Kit–style)
 
-Goal: execute PDD workflow for a given issue.
+PDD now ships **project rules** and **slash commands** via `pdd init --here --ide=cursor`:
 
-Steps:
-1. understand current behavior
-2. locate impacted files
-3. apply minimal safe delta
-4. update verification report
-5. prepare PR artifacts
+- **`.cursor/rules/pdd.mdc`** — always-on context (like Spec Kit rules)
+- **`.cursor/commands/pdd*.md`** — type **`/`** in Chat/Agent to run `/pdd`, `/pdd-recon`, `/pdd-fix`, `/pdd-feature`, `/pdd-verify`
 
-Input:
-{{issue}}
+This file is legacy; the CLI installs the folders above. Re-run:
+
+```bash
+npx pdd init --here --ide=cursor --force
+```

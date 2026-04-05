@@ -160,36 +160,155 @@ Execute Patch-Driven Development workflow.
 `
   },
   cursor: {
-    '.cursor/pdd.prompt.md': `# PDD (Cursor)
+    '.cursor/rules/pdd.mdc': `---
+description: PDD — Patch-Driven Development context for this repo (like Spec Kit project rules)
+alwaysApply: true
+---
 
-You are helping run **Patch-Driven Development** in this repo. Prefer small, safe changes and evidence before edits.
+# Patch-Driven Development
 
-## Context to use
+This repo uses **PDD**: safe changes in existing systems. The agent should:
 
-- Project rules: \`.pdd/constitution.md\`
-- Command playbooks: \`.pdd/commands/\` (e.g. \`pdd-fix.md\`, \`pdd-verify.md\`)
-- Templates: \`.pdd/templates/\` (delta-spec, patch-plan, verification-report)
+- Read \`.pdd/constitution.md\` before substantive edits.
+- Prefer **minimal safe deltas**; avoid drive-by refactors.
+- Use templates under \`.pdd/templates/\` when producing specs or reports (\`delta-spec\`, \`patch-plan\`, \`verification-report\`).
+- Follow playbooks under \`.pdd/commands/\` when the user invokes a PDD slash command.
 
-## Workflow (high level)
+Slash commands live in \`.cursor/commands/\` (type \`/\` in Chat/Agent). They mirror the PDD playbooks.
+`,
+    '.cursor/commands/pdd.md': `---
+description: "PDD — main workflow (Patch-Driven Development)"
+argument-hint: "[issue or goal]"
+---
 
-1. **Recon** — map relevant files and risks; do not edit yet.
-2. **Delta** — describe the minimal change (align with \`delta-spec\` / \`patch-plan\` ideas).
-3. **Implement** — smallest diff that fixes the issue; match existing patterns.
-4. **Verify** — how to confirm behavior; note regressions avoided or checked.
-5. **Artifacts** — if the project uses \`changes/\` or PR notes, keep them consistent.
+# PDD — main workflow
 
-## Issue to address
+You are running **Patch-Driven Development** in this repository.
 
-Describe the issue or paste it here:
+## Ground rules
 
-\`\`\`
-{{issue}}
-\`\`\`
+- Obey \`.pdd/constitution.md\`.
+- Evidence before edits: locate behavior in code/tests before changing.
+- Smallest change that solves the problem; match local patterns.
+
+## User request
+
+$ARGUMENTS
+
+(If empty, ask what issue or goal to work on.)
+
+## What to do
+
+1. Classify: bugfix vs feature vs exploration-only (**recon**).
+2. Name impacted files and risks.
+3. Propose a minimal plan, then implement or outline next steps.
+4. Say how to verify (tests, manual steps).
 
 ## Output
 
-- Clear list of files touched and why
-- If something is unknown, say what you would verify next (command, test, or manual step)
+- Files touched or to touch
+- Risks and what you did not change on purpose
+`,
+    '.cursor/commands/pdd-recon.md': `---
+description: "PDD — recon (explore before editing)"
+argument-hint: "[area or question]"
+---
+
+# PDD — recon
+
+**Exploration only** unless the user asks to edit.
+
+## Goal
+
+Map the relevant part of the system before any change. Align with \`.pdd/commands/pdd-recon.md\`.
+
+## User focus
+
+$ARGUMENTS
+
+## Deliver
+
+- Short map: entry points, key modules, data flow if useful
+- List of files worth reading next
+- Risks and unknowns
+- No production edits unless the user explicitly asked to fix something
+`,
+    '.cursor/commands/pdd-fix.md': `---
+description: "PDD — fix (minimal bugfix)"
+argument-hint: "[bug description]"
+---
+
+# PDD — fix
+
+Fix a **bug** with a minimal safe delta. Align with \`.pdd/commands/pdd-fix.md\`.
+
+## Issue
+
+$ARGUMENTS
+
+## Steps
+
+1. Reproduce or infer current vs expected behavior (code/tests).
+2. Confirm root cause (not only symptoms).
+3. Apply the smallest fix; avoid scope creep.
+4. State how to verify (tests or manual).
+
+## Output
+
+- Root cause (brief)
+- Files changed
+- Verification steps
+`,
+    '.cursor/commands/pdd-feature.md': `---
+description: "PDD — feature (safe extension)"
+argument-hint: "[feature request]"
+---
+
+# PDD — feature
+
+Add behavior **safely** in an existing system. Align with \`.pdd/commands/pdd-feature.md\`.
+
+## Request
+
+$ARGUMENTS
+
+## Steps
+
+1. Understand current behavior and extension points.
+2. Define the smallest extension (APIs, files).
+3. Implement without breaking existing callers.
+4. Verification and rollback idea.
+
+## Output
+
+- Design note (what you extended and why)
+- Files changed
+- Tests or checks to run
+`,
+    '.cursor/commands/pdd-verify.md': `---
+description: "PDD — verify (validation checklist)"
+argument-hint: "[scope or PR]"
+---
+
+# PDD — verify
+
+Validate a change or the current state. Align with \`.pdd/commands/pdd-verify.md\`.
+
+## Scope
+
+$ARGUMENTS
+
+## Checklist
+
+- Tests run (which)
+- Regressions considered
+- Manual checks if needed
+- Residual risks
+
+## Output
+
+- Pass/fail summary
+- What you would still verify before merge
 `
   },
   copilot: {
