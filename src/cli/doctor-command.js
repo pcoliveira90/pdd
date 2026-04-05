@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { PDD_TEMPLATE_VERSION } from '../core/template-registry.js';
 import { runDoctorFix } from './doctor-fix.js';
+import { buildDoctorRemediationPlan, printDoctorRemediationPlan } from '../core/remediation-advisor.js';
 
 function exists(baseDir, relativePath) {
   return fs.existsSync(path.join(baseDir, relativePath));
@@ -44,6 +45,7 @@ export function runDoctor(baseDir = process.cwd(), argv = []) {
 
   const installedVersion = readVersion(baseDir);
 
+  // Raw checks
   print('Core constitution', coreChecks.constitution);
   print('Delta spec', coreChecks.delta);
   print('Patch plan', coreChecks.patch);
@@ -71,6 +73,16 @@ export function runDoctor(baseDir = process.cwd(), argv = []) {
     console.log('ℹ️ No IDE adapters installed');
     console.log('👉 Run: pdd init --here --ide=claude (or cursor/copilot)');
   }
+
+  // Guided remediation
+  const plan = buildDoctorRemediationPlan({
+    coreChecks,
+    adapters,
+    installedVersion,
+    currentVersion: PDD_TEMPLATE_VERSION
+  });
+
+  printDoctorRemediationPlan(plan);
 
   if (shouldFix) {
     console.log('');
