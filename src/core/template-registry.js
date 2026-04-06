@@ -597,6 +597,10 @@ After edits:
 
 You are executing a Patch-Driven Development workflow.
 `,
+    '.github/prompts/pdd.prompt.md': `# PDD Prompt
+
+You are executing a Patch-Driven Development workflow.
+`,
     '.github/prompts/pdd-recon.prompt.md': `# PDD Recon Prompt
 
 Map the relevant system area before editing:

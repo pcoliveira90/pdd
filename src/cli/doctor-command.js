@@ -39,6 +39,7 @@ function copilotAdapterInstalled(baseDir) {
   return existsAny(baseDir, [
     '.github/copilot-instructions.md',
     '.github/copilot/pdd.prompt.md',
+    '.github/prompts/pdd.prompt.md',
     '.github/prompts/pdd-recon.prompt.md',
     '.github/prompts/pdd-fix.prompt.md',
     '.github/prompts/pdd-feature.prompt.md',

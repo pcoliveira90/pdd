@@ -19,14 +19,33 @@ Versoes por idioma: [README padrao](README.md) | [English](README.en.md)
 - Fluxo consistente para Cursor, Claude Code e GitHub Copilot
 - Quality gates nativos (`doctor`, validacao e checagens de CI)
 
+## Instalacao
+
+Requisitos:
+- Node.js >= 18
+- Git disponivel no PATH
+
+Executar sem instalacao global (recomendado):
+
+```bash
+npx @pcoliveira90/pdd --version
+```
+
+Instalacao global (opcional):
+
+```bash
+npm install -g @pcoliveira90/pdd
+pdd --version
+```
+
 ## Inicio rapido
 
 ```bash
-# 1) Inicialize o PDD no repositorio (se estiver na principal, o PDD cria worktree vinculada automaticamente)
-pdd init --here
+# 1) Inicialize o PDD no repositorio atual
+npx @pcoliveira90/pdd init --here
 
 # 2) Rode um fluxo de correcao
-pdd fix "login nao salva incomeStatus"
+npx @pcoliveira90/pdd fix "login nao salva incomeStatus"
 ```
 
 ## Comandos principais

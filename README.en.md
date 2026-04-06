@@ -19,14 +19,33 @@ Language versions: [Default README](README.md) | [Português (Brasil)](README.pt
 - Consistent workflow for Cursor, Claude Code, and GitHub Copilot
 - Built-in quality gates (`doctor`, validation, baseline CI checks)
 
+## Install
+
+Requirements:
+- Node.js >= 18
+- Git available in PATH
+
+Run without global install (recommended):
+
+```bash
+npx @pcoliveira90/pdd --version
+```
+
+Optional global install:
+
+```bash
+npm install -g @pcoliveira90/pdd
+pdd --version
+```
+
 ## Quick Start
 
 ```bash
-# 1) Initialize PDD in the repository (if running in primary, PDD auto-creates a linked worktree)
-pdd init --here
+# 1) Initialize PDD in the current repository
+npx @pcoliveira90/pdd init --here
 
 # 2) Run a fix workflow
-pdd fix "login not saving incomeStatus"
+npx @pcoliveira90/pdd fix "login not saving incomeStatus"
 ```
 
 ## Core Commands
