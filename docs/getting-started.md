@@ -76,7 +76,7 @@ that users can adjust before final approval.
 PDD keeps equivalent workflow intents across tools:
 - Cursor: `.cursor/commands/pdd-*.md`
 - Claude Code: `.claude/commands/pdd-*.md`
-- GitHub Copilot: `.github/prompts/pdd-*.prompt.md`
+- GitHub Copilot: `.github/prompts/pdd*.prompt.md` (main `/pdd` comes from `pdd.prompt.md`)
 
 ## Philosophy
 
