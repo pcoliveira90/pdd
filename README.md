@@ -38,6 +38,34 @@ npm install -g @pcoliveira90/pdd
 pdd --version
 ```
 
+## Download and Update
+
+Download PDD (without global install):
+
+```bash
+npx @pcoliveira90/pdd@latest --version
+```
+
+Update global CLI to latest:
+
+```bash
+npm install -g @pcoliveira90/pdd@latest
+pdd --version
+```
+
+Update PDD templates/version inside your repository:
+
+```bash
+pdd init --here --upgrade
+pdd doctor
+```
+
+If you maintain this repository locally, update source code too:
+
+```bash
+git pull origin main
+```
+
 ## Quick Start
 
 ```bash
