@@ -1,0 +1,1 @@
+pdd run: erro no cálculo de taxa quando valor > 1M
