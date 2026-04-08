@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "required": ["summary","suspected_areas","risk_level"],
+  "properties": {
+    "summary": {"type": "string"},
+    "suspected_areas": {"type": "array"},
+    "dependencies": {"type": "array"},
+    "unknowns": {"type": "array"},
+    "risk_level": {"type": "string", "enum": ["low","medium","high"]}
+  }
+}
