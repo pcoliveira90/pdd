@@ -105,7 +105,7 @@ PDD keeps equivalent intents across tools:
 
 - Cursor: `.cursor/commands/pdd-*.md`
 - Claude Code: `.claude/commands/pdd-*.md`
-- GitHub Copilot: `.github/prompts/pdd-*.prompt.md`
+- GitHub Copilot: `.github/prompts/pdd*.prompt.md` (includes `pdd.prompt.md`)
 
 ## Documentation
 

@@ -1,4 +1,4 @@
-export const PDD_TEMPLATE_VERSION = '0.3.2';
+export const PDD_TEMPLATE_VERSION = '0.8.0';
 
 export const CORE_TEMPLATES = {
   '.pdd/constitution.md': `# PDD Constitution
