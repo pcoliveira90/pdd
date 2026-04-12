@@ -19,6 +19,11 @@ import {
   formatBestPracticesSummary
 } from '../core/gap-checker.js';
 import { maybeAutoRelocateToWorktree } from '../core/worktree-guard.js';
+import {
+  analyzeChangeImpact,
+  formatImpactAnalysisSummary,
+  enforceImpactAnalysisAck
+} from '../core/impact-analyzer.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -45,6 +50,7 @@ function parseFixArgs(argv) {
     openPr: argv.includes('--open-pr'),
     dryRun: argv.includes('--dry-run'),
     noValidate: argv.includes('--no-validate'),
+    ackImpactAnalysis: argv.includes('--ack-impact-analysis'),
     ackStructuralRisk: argv.includes('--ack-structural-risk'),
     minCoverage,
     requireCoverage: argv.includes('--require-coverage'),
@@ -89,6 +95,7 @@ export async function runCli(argv = process.argv.slice(2)) {
       openPr,
       dryRun,
       noValidate,
+      ackImpactAnalysis,
       ackStructuralRisk,
       minCoverage,
       requireCoverage,
@@ -97,7 +104,7 @@ export async function runCli(argv = process.argv.slice(2)) {
 
     if (!issue) {
       console.error('❌ Missing issue description.');
-      console.log('Use: pdd fix "description" [--open-pr] [--dry-run] [--no-validate] [--ack-structural-risk] [--min-coverage=80] [--require-coverage] [--no-coverage-gate] [--allow-main-worktree]');
+      console.log('Use: pdd fix "description" [--open-pr] [--dry-run] [--no-validate] [--ack-impact-analysis] [--ack-structural-risk] [--min-coverage=80] [--require-coverage] [--no-coverage-gate] [--allow-main-worktree]');
       process.exit(1);
     }
 
@@ -117,8 +124,20 @@ export async function runCli(argv = process.argv.slice(2)) {
     });
     console.log(formatGapCheckSummary(gapCheck));
     console.log(formatBestPracticesSummary(gapCheck));
+    const impactAnalysis = analyzeChangeImpact({
+      issue,
+      riskAssessment,
+      gapCheck
+    });
+    console.log(formatImpactAnalysisSummary(impactAnalysis));
 
     try {
+      await enforceImpactAnalysisAck({
+        analysis: impactAnalysis,
+        ackFlag: ackImpactAnalysis,
+        dryRun
+      });
+
       await enforceStructuralRiskAck({
         assessment: riskAssessment,
         ackFlag: ackStructuralRisk,
@@ -135,7 +154,8 @@ export async function runCli(argv = process.argv.slice(2)) {
           generatePatchArtifacts({
             ...args,
             riskAssessment,
-            gapCheck
+            gapCheck,
+            impactAnalysis
           }),
         runValidation: targetBaseDir =>
           runValidation(targetBaseDir, {
@@ -179,7 +199,7 @@ export async function runCli(argv = process.argv.slice(2)) {
     console.log('  pdd doctor [--fix]                                                Check installation health and optionally auto-repair');
     console.log('  pdd status                                                        Show current change workflow state');
     console.log('  pdd fix "description" [--open-pr] [--dry-run] [--no-validate]    Run fix workflow and generate artifacts');
-    console.log('      [--ack-structural-risk] [--min-coverage=80] [--require-coverage] [--no-coverage-gate] [--allow-main-worktree]');
+    console.log('      [--ack-impact-analysis] [--ack-structural-risk] [--min-coverage=80] [--require-coverage] [--no-coverage-gate] [--allow-main-worktree]');
     console.log('  pdd version   (or: pdd --version, pdd -v)                        Show CLI version');
     console.log('');
     console.log('Worktree policy:');
