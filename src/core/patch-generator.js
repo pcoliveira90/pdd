@@ -77,6 +77,33 @@ function renderBestPracticesSection(gapCheck) {
   return lines.join('\n');
 }
 
+function renderImpactAnalysisSection(impactAnalysis) {
+  if (!impactAnalysis || impactAnalysis.summary.total === 0) {
+    return '- no explicit impact signals detected';
+  }
+
+  const lines = [
+    `- direct impacts: ${impactAnalysis.summary.direct}`,
+    `- indirect impacts: ${impactAnalysis.summary.indirect}`
+  ];
+
+  if (impactAnalysis.directImpacts.length > 0) {
+    lines.push('- direct impact areas:');
+    impactAnalysis.directImpacts.forEach(item => lines.push(`  - ${item.label}`));
+  }
+
+  if (impactAnalysis.indirectImpacts.length > 0) {
+    lines.push('- indirect impact areas:');
+    impactAnalysis.indirectImpacts.forEach(item => lines.push(`  - ${item.label}`));
+  }
+
+  lines.push('- proposal before execution:');
+  impactAnalysis.proposal.forEach(item => lines.push(`  - ${item}`));
+  lines.push('- approval required before implementation: yes');
+
+  return lines.join('\n');
+}
+
 function renderMappedTasksSection(gapCheck) {
   if (!gapCheck || !Array.isArray(gapCheck.mappedTasks) || gapCheck.mappedTasks.length === 0) {
     return '- not available';
@@ -139,6 +166,8 @@ ${changeId}
 ## Mapped Tasks
 ${renderMappedTasksSection(gapCheck)}
 
+## Direct and Indirect Impact Analysis
+
 ## Planned Steps (concise)
 1.
 2.
@@ -167,7 +196,8 @@ export function generatePatchArtifacts({
   baseDir = process.cwd(),
   changeId = null,
   riskAssessment = null,
-  gapCheck = null
+  gapCheck = null,
+  impactAnalysis = null
 }) {
   const resolvedChangeId = changeId || `change-${Date.now()}-${slugify(issue || 'update')}`;
   const changeDir = path.join(baseDir, 'changes', resolvedChangeId);
@@ -208,6 +238,9 @@ bugfix | feature | refactor-safe | hotfix
 
 ## Structural Impact Risks
 ${renderStructuralRiskSection(riskAssessment)}
+
+## Direct and Indirect Impact Analysis
+${renderImpactAnalysisSection(impactAnalysis)}
 
 ## Automatic Gap Check
 ${renderGapCheckSection(gapCheck)}
@@ -253,6 +286,9 @@ ${renderMappedTasksSection(gapCheck)}
 
 ## Structural Impact Risks
 ${renderStructuralRiskSection(riskAssessment)}
+
+## Direct and Indirect Impact Analysis
+${renderImpactAnalysisSection(impactAnalysis)}
 
 ## Automatic Gap Check
 ${renderGapCheckSection(gapCheck)}
@@ -309,6 +345,9 @@ ${renderMappedTasksSection(gapCheck)}
 
 ## Automatic Gap Check Summary
 ${renderGapCheckSection(gapCheck)}
+
+## Direct and Indirect Impact Analysis
+${renderImpactAnalysisSection(impactAnalysis)}
 
 ## Best-Practices Suggestions (Approval Required)
 ${renderBestPracticesSection(gapCheck)}

@@ -27,6 +27,7 @@ pdd fix "checkout flow regressions" --min-coverage=85 --require-coverage
 
 - patch first
 - validation by default
+- direct and indirect impact analysis before execution
 - test coverage gate with configurable threshold
 - structural-impact risk validation (database/contracts/migrations)
 - automatic gap check after task mapping

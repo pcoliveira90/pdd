@@ -68,6 +68,12 @@ bugfix | feature | refactor-safe | hotfix
 - API/event contract compatibility impact
 - rollout/rollback complexity impact
 
+## Direct and Indirect Impact Analysis
+- direct impact scope:
+- indirect impact scope:
+- proposal before execution:
+- user approval to proceed: yes | no
+
 ## Best-Practices Suggestions (Approval Required)
 - suggestion-only mode
 - proposal first
@@ -107,6 +113,12 @@ bugfix | feature | refactor-safe | hotfix
 - API/event contract compatibility impact
 - rollout/rollback complexity impact
 
+## Direct and Indirect Impact Analysis
+- direct impact scope:
+- indirect impact scope:
+- proposal before execution:
+- user approval to proceed: yes | no
+
 ## Best-Practices Suggestions (Approval Required)
 - suggestion-only mode
 - proposal first
@@ -145,6 +157,12 @@ approved | needs-review | partial
 ## Task Mapping
 
 ## Automatic Gap Check Summary
+
+## Direct and Indirect Impact Analysis
+- direct impact scope:
+- indirect impact scope:
+- proposal before execution:
+- approved to proceed: yes | no
 
 ## Best-Practices Suggestions (Approval Required)
 - suggestion-only mode
@@ -397,12 +415,13 @@ $ARGUMENTS
 1. Keep response concise and practical.
 2. Classify: bugfix vs feature vs recon.
 3. Map context + business rules (only essential points).
-4. Map key risks (regression, structural, usability, security).
-5. Run automatic gap check after task mapping.
-6. Run best-practices check in suggestion-only mode.
-7. Present concise proposal (including selected suggestions) and ask the user to edit if needed.
-8. Ask explicit approval before any file edits or suggestions application.
-9. After approval, implement and validate.
+4. Analyze direct and indirect impact before planning any execution.
+5. Map key risks (regression, structural, usability, security).
+6. Run automatic gap check after task mapping.
+7. Run best-practices check in suggestion-only mode.
+8. Present concise proposal (including impacts and suggestions) and ask the user to edit if needed.
+9. Ask explicit approval before any file edits or suggestions application.
+10. After approval, implement and validate.
 
 ## Output
 
@@ -411,11 +430,12 @@ Use this exact structure:
 2) Context map
 3) Business rules
 4) Risks and structural impact
-5) Concise proposal (editable by user)
-6) Verification plan
-7) Automatic gap check
-8) Best-practices suggestions (proposal-only)
-9) Pending approval (explicit question)
+5) Direct and indirect impact analysis
+6) Concise proposal (editable by user)
+7) Verification plan
+8) Automatic gap check
+9) Best-practices suggestions (proposal-only)
+10) Pending approval (explicit question)
 `,
     '.cursor/commands/pdd-recon.md': `---
 description: "PDD — recon (explore before editing)"
@@ -466,18 +486,19 @@ $ARGUMENTS
 6. Analyze security impact (auth, authz, data exposure, abuse vectors).
 7. Build risk map (regression, data/contract, performance/ops, usability, security).
    - Flag structural-impact actions explicitly (database/schema/migrations/contracts).
-8. Run automatic gap check immediately after task mapping and risk mapping.
-9. Run best-practices check in suggestion-only mode.
-10. Present concise proposal and allow user edits.
-11. Ask explicit approval before editing files or applying suggestions.
+8. Analyze direct and indirect impact before proposing execution.
+9. Run automatic gap check immediately after task mapping and risk mapping.
+10. Run best-practices check in suggestion-only mode.
+11. Present concise proposal and allow user edits.
+12. Ask explicit approval before editing files or applying suggestions.
 
 ### Phase 2 — Plan (no edits)
-12. Propose minimal safe delta and alternatives considered.
-13. Define verification plan (tests + manual checks + rollback).
+13. Propose minimal safe delta and alternatives considered.
+14. Define verification plan (tests + manual checks + rollback).
 
 ### Phase 3 — Execution (after approval)
-14. Implement approved minimal change.
-15. Validate and report residual risks.
+15. Implement approved minimal change.
+16. Validate and report residual risks.
 
 ## Output
 
@@ -487,16 +508,17 @@ Use this exact structure:
 3) Context map
 4) Business rules
 5) Risks and structural impact
-6) Concise proposal (editable by user)
-7) Verification + coverage plan
-8) Automatic gap check
-9) Best-practices suggestions (proposal-only)
-10) Pending approval (explicit question)
+6) Direct and indirect impact analysis
+7) Concise proposal (editable by user)
+8) Verification + coverage plan
+9) Automatic gap check
+10) Best-practices suggestions (proposal-only)
+11) Pending approval (explicit question)
 
 After approval:
-11) Files changed
-12) Validation results
-13) Residual risks
+12) Files changed
+13) Validation results
+14) Residual risks
 `,
     '.cursor/commands/pdd-feature.md': `---
 description: "PDD — feature (safe extension)"
@@ -521,18 +543,19 @@ $ARGUMENTS
 5. Analyze security impact (permissions, data exposure, misuse scenarios).
 6. Build risk map (compatibility, regression, data, performance, operational, usability, security).
    - Flag structural-impact actions explicitly (database/schema/migrations/contracts).
-7. Run automatic gap check immediately after task mapping and risk mapping.
-8. Run best-practices check in suggestion-only mode.
-9. Present concise proposal and allow user edits.
-10. Ask explicit approval before editing files or applying suggestions.
+7. Analyze direct and indirect impact before proposing execution.
+8. Run automatic gap check immediately after task mapping and risk mapping.
+9. Run best-practices check in suggestion-only mode.
+10. Present concise proposal and allow user edits.
+11. Ask explicit approval before editing files or applying suggestions.
 
 ### Phase 2 — Plan (no edits)
-11. Define smallest safe extension and non-goals.
-12. Propose verification and rollback strategy.
+12. Define smallest safe extension and non-goals.
+13. Propose verification and rollback strategy.
 
 ### Phase 3 — Execution (after approval)
-13. Implement approved scope.
-14. Validate compatibility and report residual risks.
+14. Implement approved scope.
+15. Validate compatibility and report residual risks.
 
 ## Output
 
@@ -541,16 +564,17 @@ Use this exact structure:
 2) Context map
 3) Business rules
 4) Risks and structural impact
-5) Concise proposal (editable by user)
-6) Verification + coverage + rollback plan
-7) Automatic gap check
-8) Best-practices suggestions (proposal-only)
-9) Pending approval (explicit question)
+5) Direct and indirect impact analysis
+6) Concise proposal (editable by user)
+7) Verification + coverage + rollback plan
+8) Automatic gap check
+9) Best-practices suggestions (proposal-only)
+10) Pending approval (explicit question)
 
 After approval:
-10) Files changed
-11) Validation results
-12) Residual risks
+11) Files changed
+12) Validation results
+13) Residual risks
 `,
     '.cursor/commands/pdd-verify.md': `---
 description: "PDD — verify (validation checklist)"
